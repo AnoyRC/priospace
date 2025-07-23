@@ -12,6 +12,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { open } from "@tauri-apps/plugin-shell";
 
 export function SettingsModal({
   onClose,
@@ -82,11 +83,11 @@ export function SettingsModal({
   };
 
   const handleBuyMeCoffee = () => {
-    window.open("https://coff.ee/anoy", "_blank");
+    open("https://coff.ee/anoy");
   };
 
   const handleTwitterClick = () => {
-    window.open("https://x.com/Anoyroyc", "_blank");
+    open("https://x.com/Anoyroyc");
   };
 
   return (

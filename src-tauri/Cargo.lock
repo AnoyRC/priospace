@@ -3993,60 +3993,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "tauri-plugin-autostart"
-version = "2.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "062cdcd483d5e3148c9a64dabf8c574e239e2aa1193cf208d95cf89a676f87a5"
-dependencies = [
- "auto-launch",
- "serde",
- "serde_json",
- "tauri",
- "tauri-plugin",
- "thiserror 2.0.12",
-]
-
-[[package]]
-name = "tauri-plugin-dialog"
-version = "2.3.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "05bedd4c3cf6f7aa97918a8814a736bd3695c9ddf3ede2d50eda6069c3290edc"
-dependencies = [
- "log",
- "raw-window-handle",
- "rfd",
- "serde",
- "serde_json",
- "tauri",
- "tauri-plugin",
- "tauri-plugin-fs",
- "thiserror 2.0.12",
- "url",
-]
-
-[[package]]
-name = "tauri-plugin-fs"
-version = "2.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8c6ef84ee2f2094ce093e55106d90d763ba343fad57566992962e8f76d113f99"
-dependencies = [
- "anyhow",
- "dunce",
- "glob",
- "percent-encoding",
- "schemars 0.8.22",
- "serde",
- "serde_json",
- "serde_repr",
- "tauri",
- "tauri-plugin",
- "tauri-utils",
- "thiserror 2.0.12",
- "toml 0.8.23",
- "url",
-]
-
-[[package]]
 name = "tauri-plugin-log"
 version = "2.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"

@@ -232,8 +232,8 @@ export function SettingsModal({
     },
   };
 
-  const handleGithubClick = () => {
-    open("https://github.com/AnoyRC/priospace");
+  const handleBuyMeCoffee = () => {
+    window.open("https://coff.ee/anoy", "_blank");
   };
 
   const handleTwitterClick = () => {

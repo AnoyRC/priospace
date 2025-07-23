@@ -16,6 +16,8 @@ import { TimerModal } from "@/components/timer-modal";
 import { SettingsModal } from "@/components/settings-modal";
 import { IntroScreen } from "@/components/intro-screen";
 import { WebRTCShareModal } from "@/components/webrtc-share-modal";
+import { writeTextFile } from "@tauri-apps/plugin-fs";
+import { save } from "@tauri-apps/plugin-dialog";
 
 export default function Home() {
   const [darkMode, setDarkMode] = useState(false);
@@ -864,7 +866,7 @@ export default function Home() {
     setShowTaskOptions(true);
   };
 
-  const exportData = () => {
+  const exportData = async () => {
     const data = {
       dailyTasks,
       customTags,
@@ -874,20 +876,28 @@ export default function Home() {
       exportDate: new Date().toISOString(),
       version: "3.0", // Update version for subtasks support
     };
+
     const dataStr = JSON.stringify(data, null, 2);
-    const dataBlob = new Blob([dataStr], { type: "application/json" });
-    const url = URL.createObjectURL(dataBlob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `todo-app-backup-${
-      new Date().toISOString().split("T")[0]
-    }.json`;
-    link.style.display = "none";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    setShowSettings(false); // Close settings after export
+
+    // Ask user where to save
+    const filePath = await save({
+      filters: [
+        {
+          name: "JSON",
+          extensions: ["json"],
+        },
+      ],
+      defaultPath: `todo-app-backup-${
+        new Date().toISOString().split("T")[0]
+      }.json`,
+    });
+
+    if (filePath) {
+      await writeTextFile(filePath, dataStr);
+      setShowSettings(false);
+    } else {
+      console.log("User cancelled export.");
+    }
   };
 
   const importData = () => {

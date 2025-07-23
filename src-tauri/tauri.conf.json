@@ -33,5 +33,11 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ]
+  },
+  "plugins": {
+    "dialog": null,
+    "fs": {
+      "requireLiteralLeadingDot": false
+    }
   }
 }

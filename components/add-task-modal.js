@@ -324,7 +324,6 @@ export function AddTaskModal({
                 onKeyDown={(e) =>
                   e.key === "Enter" && !showAddTag && handleSubmit()
                 }
-                autoFocus
                 className="border-0 bg-transparent md:text-2xl h-10 font-extrabold px-0 py-2 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus-visible:ring-0 focus-visible:ring-offset-0"
               />
             </motion.div>

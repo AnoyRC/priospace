@@ -13,13 +13,8 @@
     "windows": [
       {
         "title": "priospace",
-        "resizable": true,
         "fullscreen": false,
-        "decorations": false,
-        "transparent": false,
-        "alwaysOnTop": false,
-        "center": true,
-        "skipTaskbar": false
+        "decorations": true
       }
     ],
     "security": {

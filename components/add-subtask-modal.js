@@ -88,12 +88,6 @@ export function AddSubtaskModal({
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [customTags, selectedTag]);
 
-  useEffect(() => {
-    if (inputRef.current) {
-      inputRef.current.focus();
-    }
-  }, []);
-
   const handleSubmit = () => {
     if (title.trim()) {
       onAddSubtask(title.trim(), selectedTag || undefined);

@@ -960,18 +960,18 @@ export default function Home() {
       </AnimatePresence>
 
       {!showIntroScreen && (
-        <div className="min-h-screen transition-colors duration-300 bg-background">
+        <div className="min-h-[90vh] transition-colors duration-300 bg-background">
           {/* Mobile/Tablet Layout (up to lg) */}
-          <div className="lg:hidden max-w-lg mx-auto min-h-screen px-4 relative overflow-hidden">
+          <div className="lg:hidden max-w-lg mx-auto min-h-[90vh] px-4 relative overflow-hidden">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
-              className="flex flex-col h-screen relative"
+              className="flex flex-col h-[90vh] relative"
             >
               <button
                 onClick={() => setShowSettings(true)}
-                className="absolute left-1/2 -translate-x-1/2 z-10 bg-primary text-background rounded-b-lg py-2 px-2 pt-1"
+                className="absolute left-1/2 -translate-x-1/2 z-10 bg-primary text-background rounded-lg flex items-center justify-center p-2"
               >
                 <Settings className="h-3 w-3" />
               </button>
@@ -1063,7 +1063,7 @@ export default function Home() {
           </div>
 
           {/* Desktop Layout (lg and up) */}
-          <div className="hidden lg:flex max-h-screen h-screen overflow-hidden">
+          <div className="hidden lg:flex max-h-[90vh] h-[90vh] overflow-hidden">
             {/* Left Sidebar - Calendar & Navigation */}
             <div className="w-lg border-r border-dashed flex flex-col bg-background/50 backdrop-blur-sm">
               <motion.div

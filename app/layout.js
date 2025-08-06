@@ -1,5 +1,4 @@
 import "./globals.css";
-
 import { Nunito } from "next/font/google";
 
 const nunito = Nunito({
@@ -16,8 +15,12 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
+      <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+      />
       <body
-        className={`${nunito.variable} antialiased font-nunito`}
+        className={`${nunito.variable} antialiased font-nunito h-[90vh] max-h-[90vh] overscroll-y-hidden overflow-y-hidden`}
         suppressHydrationWarning
       >
         {children}

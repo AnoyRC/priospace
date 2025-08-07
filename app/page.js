@@ -245,7 +245,7 @@ export default function Home() {
         newSubtasks: 0,
         newTags: 0,
         newHabits: 0,
-        updatedTasks: 0, // MODIFICATION: Added for better feedback
+        updatedTasks: 0,
         updatedSettings: [],
       };
 
@@ -368,8 +368,7 @@ export default function Home() {
                 importStats.newTasks++;
                 importStats.newSubtasks += (incomingTask.subtasks || []).length;
               } else {
-                // --- MODIFICATION START: Sync logic for existing tasks ---
-
+                // Existing task - sync completion status and subtasks
                 const existingTask =
                   newOrUpdatedTasksForDate[existingTaskIndex];
                 let taskWasUpdated = false;
@@ -414,7 +413,7 @@ export default function Home() {
                       parentTaskId: existingTask.id,
                     });
                     importStats.newSubtasks++;
-                    taskWasUpdated = true; // Adding a subtask is an update
+                    taskWasUpdated = true;
                   }
                 });
 
@@ -424,7 +423,6 @@ export default function Home() {
                   newOrUpdatedTasksForDate[existingTaskIndex] = existingTask;
                   importStats.updatedTasks++;
                 }
-                // --- MODIFICATION END ---
               }
             });
 
@@ -435,7 +433,7 @@ export default function Home() {
         });
       }
 
-      // 3. Merge Habits (with proper tag mapping)
+      // 3. Merge Habits (FIXED: with proper tag mapping for both new and existing habits)
       if (data.habits) {
         setHabits((prevHabits) => {
           const updatedHabits = [...prevHabits];
@@ -447,24 +445,26 @@ export default function Home() {
                 incomingHabit.name.toLowerCase().trim()
             );
 
+            // Map the tag ID if it exists in our mapping
+            const mappedTagId =
+              incomingHabit.tag && tagMapping.has(incomingHabit.tag)
+                ? tagMapping.get(incomingHabit.tag)
+                : incomingHabit.tag;
+
             if (existingHabitIndex === -1) {
               // New Habit
-              const mappedTagId =
-                incomingHabit.tag && tagMapping.has(incomingHabit.tag)
-                  ? tagMapping.get(incomingHabit.tag)
-                  : incomingHabit.tag;
               const newHabitId = `${Date.now()}-${Math.random()
                 .toString(36)
                 .substring(2, 8)}`;
               updatedHabits.push({
                 ...incomingHabit,
                 id: newHabitId,
-                tag: mappedTagId,
+                tag: mappedTagId, // Use mapped tag ID
                 completedDates: incomingHabit.completedDates || [],
               });
               importStats.newHabits++;
             } else {
-              // Existing Habit: Merge completion dates
+              // FIXED: Existing Habit - merge completion dates AND update tag
               const existingHabit = updatedHabits[existingHabitIndex];
               const mergedCompletedDates = [
                 ...new Set([
@@ -472,9 +472,11 @@ export default function Home() {
                   ...(incomingHabit.completedDates || []),
                 ]),
               ];
+
               updatedHabits[existingHabitIndex] = {
                 ...existingHabit,
                 completedDates: mergedCompletedDates,
+                tag: mappedTagId, // FIXED: Apply mapped tag ID to existing habits too
               };
             }
           });
@@ -516,7 +518,6 @@ export default function Home() {
       if (importStats.newTasks > 0)
         summaryParts.push(`${importStats.newTasks} new task(s)`);
       if (importStats.updatedTasks > 0)
-        // MODIFICATION: Added to summary
         summaryParts.push(`${importStats.updatedTasks} updated task(s)`);
       if (importStats.newSubtasks > 0)
         summaryParts.push(`${importStats.newSubtasks} new subtask(s)`);
@@ -531,7 +532,7 @@ export default function Home() {
 
       const totalChanges =
         importStats.newTasks +
-        importStats.updatedTasks + // MODIFICATION: Added to total
+        importStats.updatedTasks +
         importStats.newSubtasks +
         importStats.newTags +
         importStats.newHabits;
@@ -960,9 +961,9 @@ export default function Home() {
       </AnimatePresence>
 
       {!showIntroScreen && (
-        <div className="min-h-[90vh] transition-colors duration-300 bg-background">
+        <div className="h-full flex flex-col justify-end w-full transition-colors duration-300 bg-background">
           {/* Mobile/Tablet Layout (up to lg) */}
-          <div className="lg:hidden max-w-lg mx-auto min-h-[90vh] px-4 relative overflow-hidden">
+          <div className="lg:hidden max-w-lg mx-auto min-h-[90vh] px-4 mx-0 relative overflow-hidden">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -984,6 +985,7 @@ export default function Home() {
               >
                 <div className="flex items-center justify-between">
                   <DayNightCycle selectedDate={selectedDate} />
+
                   <div className="flex items-center gap-2">
                     <div className="text-right flex flex-col">
                       <div className="text-xl font-extrabold flex items-center gap-2">

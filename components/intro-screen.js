@@ -1,7 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { CheckCircle, Timer, RotateCcw } from "lucide-react";
 
 const motivationalQuotes = [
@@ -25,98 +24,13 @@ const motivationalQuotes = [
   "You have no time to waste.",
 ];
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.15,
-      delayChildren: 0.3,
-    },
-  },
-  exit: {
-    opacity: 0,
-    scale: 0.95,
-    transition: {
-      duration: 0.8,
-      ease: "easeInOut",
-    },
-  },
-};
-
-const logoVariants = {
-  hidden: { opacity: 0, scale: 0.8, y: -20 },
-  visible: {
-    opacity: 1,
-    scale: 1,
-    y: 0,
-    transition: {
-      type: "spring",
-      stiffness: 300,
-      damping: 25,
-      duration: 0.8,
-    },
-  },
-};
-
-const iconVariants = {
-  hidden: { opacity: 0, scale: 0 },
-  visible: {
-    opacity: 1,
-    scale: 1,
-    transition: {
-      type: "spring",
-      stiffness: 500,
-      damping: 30,
-      delay: 0.1,
-    },
-  },
-};
-
-const textContainerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.08,
-      delayChildren: 1.2, // Increased delay to let other animations complete first
-    },
-  },
-};
-
-const wordVariants = {
-  hidden: {
-    opacity: 0,
-    y: 20,
-    filter: "blur(4px)",
-  },
-  visible: {
-    opacity: 1,
-    y: 0,
-    filter: "blur(0px)",
-    transition: {
-      duration: 0.6,
-      ease: [0.25, 0.46, 0.45, 0.94], // Custom easing
-    },
-  },
-};
-
-const brandVariants = {
-  hidden: { opacity: 0, y: 30 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      delay: 0.8,
-      duration: 0.6,
-      ease: "easeOut",
-    },
-  },
-};
-
 export function IntroScreen({ onAnimationComplete }) {
   const [currentQuote, setCurrentQuote] = useState("");
   const [words, setWords] = useState([]);
+  const screenRef = useRef(null);
+  const contentRef = useRef(null);
+
+  // --- VANILLA JS ANIMATIONS ---
 
   useEffect(() => {
     // Select a random quote on mount
@@ -125,88 +39,100 @@ export function IntroScreen({ onAnimationComplete }) {
     setCurrentQuote(selectedQuote);
     setWords(selectedQuote.split(" "));
 
-    // Set timeout for the full screen to fade out
-    const timer = setTimeout(() => {
-      onAnimationComplete();
-    }, 1500); // Total duration: 1.5 seconds
+    // Animate content fade-in and slide-up
+    contentRef.current?.animate(
+      [
+        { opacity: 0, transform: "translateY(20px)" },
+        { opacity: 1, transform: "translateY(0)" },
+      ],
+      {
+        duration: 800,
+        easing: "ease-out",
+        fill: "forwards",
+        delay: 200,
+      }
+    );
 
-    return () => clearTimeout(timer);
+    // Staggered word animation
+    const wordElements = contentRef.current?.querySelectorAll(".quote-word");
+    wordElements?.forEach((word, index) => {
+      word.animate(
+        [
+          { opacity: 0, filter: "blur(4px)", transform: "translateY(20px)" },
+          { opacity: 1, filter: "blur(0px)", transform: "translateY(0)" },
+        ],
+        {
+          duration: 600,
+          easing: "ease-out",
+          fill: "forwards",
+          delay: 800 + index * 80,
+        }
+      );
+    });
+
+    // Animate the entire screen fading out
+    const screenAnimation = screenRef.current?.animate(
+      [{ opacity: 1 }, { opacity: 0 }],
+      {
+        duration: 500,
+        easing: "ease-in",
+        fill: "forwards",
+        delay: 1800, // Start fade-out after content is visible
+      }
+    );
+
+    // Call the completion callback when the fade-out is done
+    screenAnimation?.finished.then(() => {
+      onAnimationComplete();
+    });
   }, [onAnimationComplete]);
 
+  // --- END OF ANIMATIONS ---
+
   return (
-    <motion.div
+    <div
+      ref={screenRef}
       className="fixed inset-0 bg-gradient-to-br from-white via-gray-50 to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-700 flex flex-col items-center justify-center z-[100] overflow-hidden"
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-      exit="exit"
     >
-      {/* Main Content */}
-      <div className="relative z-10 flex flex-col items-center space-y-8 px-8 max-w-4xl mx-auto">
-        {/* App Logo/Brand */}
-        <motion.div
-          variants={logoVariants}
-          className="flex flex-col items-center space-y-4 max-w-lg"
-        >
+      <div
+        ref={contentRef}
+        className="relative z-10 flex flex-col items-center space-y-8 px-8 max-w-4xl mx-auto opacity-0"
+      >
+        <div className="flex flex-col items-center space-y-4 max-w-lg">
           <div className="flex items-center gap-4">
-            <motion.div
-              variants={iconVariants}
-              className="p-4 bg-primary/10 rounded-2xl"
-            >
+            <div className="p-4 bg-primary/10 rounded-2xl">
               <Timer className="h-12 w-12 text-primary" />
-            </motion.div>
-            <motion.div
-              variants={iconVariants}
-              className="p-4 bg-primary/10 rounded-2xl"
-              style={{ animationDelay: "0.1s" }}
-            >
+            </div>
+            <div className="p-4 bg-primary/10 rounded-2xl">
               <CheckCircle className="h-12 w-12 text-primary" />
-            </motion.div>
-            <motion.div
-              variants={iconVariants}
-              className="p-4 bg-primary/10 rounded-2xl"
-              style={{ animationDelay: "0.2s" }}
-            >
+            </div>
+            <div className="p-4 bg-primary/10 rounded-2xl">
               <RotateCcw className="h-12 w-12 text-primary" />
-            </motion.div>
+            </div>
           </div>
 
-          <motion.h1
-            variants={logoVariants}
-            className="text-5xl md:text-6xl font-extrabold text-gray-900 dark:text-gray-100 text-center tracking-tight"
-          >
+          <h1 className="text-5xl md:text-6xl font-extrabold text-gray-900 dark:text-gray-100 text-center tracking-tight">
             Prio Space
-          </motion.h1>
+          </h1>
 
-          <motion.div
-            variants={logoVariants}
-            className="text-lg font-bold text-primary uppercase tracking-wider"
-          >
+          <div className="text-lg font-bold text-primary uppercase tracking-wider">
             Focus • Track • Achieve
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
 
-        {/* Motivational Quote */}
-        <motion.div
-          variants={textContainerVariants}
-          className="text-center"
-          initial="hidden"
-          animate="visible"
-        >
+        <div className="text-center">
           <div className="text-gray-700 text-center dark:text-gray-300 text-xl md:text-2xl font-medium leading-relaxed max-w-lg mx-auto">
             {words.map((word, i) => (
-              <motion.span
-                key={`${word}-${i}`} // Better key to handle duplicate words
-                className="inline-block mr-2"
-                variants={wordVariants}
-                custom={i} // Pass index as custom prop if needed for more control
+              <span
+                key={`${word}-${i}`}
+                className="quote-word inline-block mr-2 opacity-0"
               >
                 {word}
-              </motion.span>
+              </span>
             ))}
           </div>
-        </motion.div>
+        </div>
       </div>
-    </motion.div>
+    </div>
   );
 }

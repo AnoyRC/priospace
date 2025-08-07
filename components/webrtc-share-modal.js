@@ -571,7 +571,7 @@ export function WebRTCShareModal({
       initial="hidden"
       animate="visible"
       exit="exit"
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end justify-center z-50"
+      className="fixed inset-0 bg-transparent backdrop-blur-sm flex items-end justify-center z-50"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
       <motion.div

@@ -5,7 +5,7 @@
   "identifier": "com.anoyrc.priospace",
   "build": {
     "frontendDist": "../out",
-    "devUrl": "http://localhost:3000",
+    "devUrl": "http://192.168.0.150:3000",
     "beforeDevCommand": "npm run dev",
     "beforeBuildCommand": "npm run build"
   },

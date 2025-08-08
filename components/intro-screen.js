@@ -25,8 +25,8 @@ const motivationalQuotes = [
 ];
 
 export function IntroScreen({ onAnimationComplete }) {
+  // We no longer need the 'words' state
   const [currentQuote, setCurrentQuote] = useState("");
-  const [words, setWords] = useState([]);
   const screenRef = useRef(null);
   const contentRef = useRef(null);
 
@@ -35,11 +35,9 @@ export function IntroScreen({ onAnimationComplete }) {
   useEffect(() => {
     // Select a random quote on mount
     const randomIndex = Math.floor(Math.random() * motivationalQuotes.length);
-    const selectedQuote = motivationalQuotes[randomIndex];
-    setCurrentQuote(selectedQuote);
-    setWords(selectedQuote.split(" "));
+    setCurrentQuote(motivationalQuotes[randomIndex]);
 
-    // Animate content fade-in and slide-up
+    // Animate content fade-in and slide-up (this part remains)
     contentRef.current?.animate(
       [
         { opacity: 0, transform: "translateY(20px)" },
@@ -53,31 +51,17 @@ export function IntroScreen({ onAnimationComplete }) {
       }
     );
 
-    // Staggered word animation
-    const wordElements = contentRef.current?.querySelectorAll(".quote-word");
-    wordElements?.forEach((word, index) => {
-      word.animate(
-        [
-          { opacity: 0, filter: "blur(4px)", transform: "translateY(20px)" },
-          { opacity: 1, filter: "blur(0px)", transform: "translateY(0)" },
-        ],
-        {
-          duration: 600,
-          easing: "ease-out",
-          fill: "forwards",
-          delay: 800 + index * 80,
-        }
-      );
-    });
+    // -- Staggered word animation has been REMOVED --
 
-    // Animate the entire screen fading out
+    // Animate the entire screen fading out.
+    // The delay is reduced from 1800ms to 1600ms because we don't need to wait for the word animation anymore.
     const screenAnimation = screenRef.current?.animate(
       [{ opacity: 1 }, { opacity: 0 }],
       {
         duration: 500,
         easing: "ease-in",
         fill: "forwards",
-        delay: 1800, // Start fade-out after content is visible
+        delay: 1600, // Reduced delay for a quicker transition
       }
     );
 
@@ -121,16 +105,13 @@ export function IntroScreen({ onAnimationComplete }) {
         </div>
 
         <div className="text-center">
-          <div className="text-gray-700 text-center dark:text-gray-300 text-xl md:text-2xl font-medium leading-relaxed max-w-lg mx-auto">
-            {words.map((word, i) => (
-              <span
-                key={`${word}-${i}`}
-                className="quote-word inline-block mr-2 opacity-0"
-              >
-                {word}
-              </span>
-            ))}
-          </div>
+          {/*
+            The JSX has been simplified. Instead of mapping over words,
+            we now display the entire 'currentQuote' in a single paragraph.
+          */}
+          <p className="text-gray-700 text-center dark:text-gray-300 text-xl md:text-2xl font-medium leading-relaxed max-w-lg mx-auto">
+            {currentQuote}
+          </p>
         </div>
       </div>
     </div>

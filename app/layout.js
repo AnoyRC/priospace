@@ -1,3 +1,5 @@
+// src/app/layout.jsx
+
 import "./globals.css";
 import { Nunito } from "next/font/google";
 
@@ -14,13 +16,14 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
+    <html lang="en" className="h-screen overflow-hidden">
       <meta
         name="viewport"
-        content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+        content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no"
       />
+
       <body
-        className={`${nunito.variable} antialiased font-nunito h-[90vh] max-h-[90vh] overscroll-y-hidden overflow-y-hidden`}
+        className={`${nunito.variable} antialiased font-nunito h-full w-full overflow-hidden`}
         suppressHydrationWarning
       >
         {children}

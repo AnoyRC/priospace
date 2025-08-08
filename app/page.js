@@ -34,9 +34,16 @@ export default function Home() {
   const [showIntroScreen, setShowIntroScreen] = useState(true);
   const [parentTaskForSubtask, setParentTaskForSubtask] = useState(null);
   const [showWebRTCShare, setShowWebRTCShare] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Load data from localStorage on mount
   useEffect(() => {
+    if (!mounted) return;
+
     const savedDarkMode = localStorage.getItem("darkMode");
     if (savedDarkMode) {
       setDarkMode(JSON.parse(savedDarkMode));
@@ -88,10 +95,12 @@ export default function Home() {
     if (savedHabits) {
       setHabits(JSON.parse(savedHabits));
     }
-  }, []);
+  }, [mounted]);
 
   // Apply theme classes to document
   useEffect(() => {
+    if (!mounted) return;
+
     const root = document.documentElement;
 
     // Remove all theme classes
@@ -116,7 +125,7 @@ export default function Home() {
     } else {
       root.classList.remove("dark");
     }
-  }, [theme, darkMode]);
+  }, [theme, darkMode, mounted]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -952,6 +961,10 @@ export default function Home() {
   const allTasks = [...regularTasks, ...dailyHabitTasks];
   const flatTaskList = createFlatTaskList(allTasks); // For timer and other components
 
+  if (!mounted) {
+    return null; // Or you can return a loading skeleton component here
+  }
+
   return (
     <>
       <AnimatePresence>
@@ -961,14 +974,14 @@ export default function Home() {
       </AnimatePresence>
 
       {!showIntroScreen && (
-        <div className="h-full flex flex-col justify-end w-full transition-colors duration-300 bg-background">
+        <div className="relative h-full flex flex-col justify-end w-full transition-colors duration-300 bg-background">
           {/* Mobile/Tablet Layout (up to lg) */}
-          <div className="lg:hidden max-w-lg mx-auto min-h-[90vh] px-4 mx-0 relative overflow-hidden">
+          <div className="lg:hidden max-w-lg min-h-[92.5vh] bottom-[7.5vh] w-screen px-4 mx-0 overflow-hidden absolute">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
-              className="flex flex-col h-[90vh] relative"
+              className="flex flex-col h-[92.5vh] relative"
             >
               <button
                 onClick={() => setShowSettings(true)}
@@ -1065,7 +1078,7 @@ export default function Home() {
           </div>
 
           {/* Desktop Layout (lg and up) */}
-          <div className="hidden lg:flex max-h-[90vh] h-[90vh] overflow-hidden">
+          <div className="hidden lg:flex max-h-[92.5vh] h-[92.5vh] overflow-hidden">
             {/* Left Sidebar - Calendar & Navigation */}
             <div className="w-lg border-r border-dashed flex flex-col bg-background/50 backdrop-blur-sm">
               <motion.div

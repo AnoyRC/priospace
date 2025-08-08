@@ -976,16 +976,12 @@ export default function Home() {
       {!showIntroScreen && (
         <div className="relative h-full flex flex-col justify-end w-full transition-colors duration-300 bg-background">
           {/* Mobile/Tablet Layout (up to lg) */}
-          <div
-            className="lg:hidden max-w-lg h-[92.5vh] bottom-[7.5vh] w-screen px-4 mx-0 overflow-hidden absolute left-1/2 -translate-x-1/2"
-            style={{ height: "92.5vh", bottom: "7.5vh", width: "100%" }}
-          >
+          <div className="lg:hidden max-w-lg min-h-[92.5vh] bottom-[7.5vh] w-screen px-4 mx-0 overflow-hidden absolute">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
               className="flex flex-col h-[92.5vh] relative"
-              style={{ height: "92.5vh" }}
             >
               <button
                 onClick={() => setShowSettings(true)}
@@ -1082,10 +1078,7 @@ export default function Home() {
           </div>
 
           {/* Desktop Layout (lg and up) */}
-          <div
-            className="hidden lg:flex max-h-[92.5vh] h-[92.5vh] overflow-hidden"
-            style={{ height: "92.5vh" }}
-          >
+          <div className="hidden lg:flex max-h-[92.5vh] h-[92.5vh] overflow-hidden">
             {/* Left Sidebar - Calendar & Navigation */}
             <div className="w-lg border-r border-dashed flex flex-col bg-background/50 backdrop-blur-sm">
               <motion.div

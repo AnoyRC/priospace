@@ -974,7 +974,7 @@ export default function Home() {
       </AnimatePresence>
 
       {!showIntroScreen && (
-        <div className="relative h-full flex flex-col justify-end w-full transition-colors duration-300 bg-background">
+        <div className="relative h-full flex flex-col justify-end w-full transition-colors duration-300 bg-background2">
           {/* Mobile/Tablet Layout (up to lg) */}
           <div className="lg:hidden max-w-lg min-h-[92.5vh] bottom-[7.5vh] w-screen px-4 mx-0 overflow-hidden absolute">
             <motion.div
@@ -1039,7 +1039,7 @@ export default function Home() {
                 />
               </div>
 
-              <div className="p-4 border-t border-dashed absolute bottom-0 left-1/2 -translate-x-1/2 bg-background/70 backdrop-blur-sm w-full z-50">
+              <div className="p-4 border-t border-dashed absolute bottom-0 left-1/2 -translate-x-1/2 bg-background2/70 backdrop-blur-sm w-full z-50">
                 <div className="flex items-center justify-between">
                   <Button
                     onClick={() => setShowTimer(true)}
@@ -1080,7 +1080,7 @@ export default function Home() {
           {/* Desktop Layout (lg and up) */}
           <div className="hidden lg:flex max-h-[92.5vh] h-[92.5vh] overflow-hidden">
             {/* Left Sidebar - Calendar & Navigation */}
-            <div className="w-lg border-r border-dashed flex flex-col bg-background/50 backdrop-blur-sm">
+            <div className="w-lg border-r border-dashed flex flex-col bg-background2/50 backdrop-blur-sm">
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}

@@ -5,6 +5,7 @@
 /* Default Theme */
 :root {
   --background: 55.0000 30.0000% 92.1569%;
+  --background2: 55.0000 30.0000% 92.1569%;
   --foreground: 15.6522 15.4362% 29.2157%;
   --card: 55.0000 30.0000% 92.1569%;
   --card-foreground: 15.6522 15.4362% 29.2157%;
@@ -52,8 +53,18 @@
   --spacing: 0.25rem;
 }
 
+.modal-open-background {
+  --background: 0 0% 100%;
+}
+
+.dark.modal-open-background {
+  /* It changes the background variable to pure black for a consistent experience */
+  --background: 221 39% 11%;
+}
+
 .dark {
   --background: 20 15.3846% 15.2941%;
+  --background2: 20 15.3846% 15.2941%;
   --foreground: 55.0000 30.0000% 92.1569%;
   --card: 21.4286 13.2075% 20.7843%;
   --card-foreground: 55.0000 30.0000% 92.1569%;

@@ -241,7 +241,7 @@ export function AddTaskModal({
                 onChange={(e) =>
                   setTaskDate(parseDateFromInput(e.target.value))
                 }
-                className=" border-2  w-32 border-gray-300 focus:border-primary/70 font-extrabold dark:border-gray-600 dark:focus:border-primary/80 dark:bg-gray-800 dark:text-gray-100 rounded-xl py-3 px-4"
+                className=" border-2  w-40 border-gray-300 focus:border-primary/70 font-extrabold dark:border-gray-600 dark:focus:border-primary/80 dark:bg-gray-800 dark:text-gray-100 rounded-xl py-3 px-4"
               />
             </div>
 

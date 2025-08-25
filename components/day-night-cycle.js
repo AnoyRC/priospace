@@ -16,7 +16,7 @@ function AnimatedWeekday({ dayIndex, fontSize, textColor }) {
     },
     {
       day: "Tue",
-      width: fontSize * 1.7,
+      width: fontSize * 1.65,
     },
     {
       day: "Wed",

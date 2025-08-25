@@ -127,6 +127,32 @@ export default function Home() {
     }
   }, [theme, darkMode, mounted]);
 
+  const isModalOpen =
+    showAddTask ||
+    showHabits ||
+    showTimer ||
+    showSettings ||
+    showTaskOptions ||
+    showAddSubtask ||
+    showWebRTCShare;
+
+  useEffect(() => {
+    const root = document.documentElement; // This is the <html> tag
+
+    if (isModalOpen) {
+      // When a modal is open, add the class
+      root.classList.add("modal-open-background");
+    } else {
+      // When all modals are closed, remove the class
+      root.classList.remove("modal-open-background");
+    }
+
+    // Optional: Cleanup function to ensure the class is removed if the component unmounts
+    return () => {
+      root.classList.remove("modal-open-background");
+    };
+  }, [isModalOpen]);
+
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -974,18 +1000,18 @@ export default function Home() {
       </AnimatePresence>
 
       {!showIntroScreen && (
-        <div className="relative h-full flex flex-col justify-end w-full transition-colors duration-300 bg-background">
+        <div className="relative h-full flex flex-col justify-end w-full transition-colors duration-300 bg-background2">
           {/* Mobile/Tablet Layout (up to lg) */}
           <div
-            className="lg:hidden max-w-lg h-[92.5vh] bottom-[7.5vh] w-screen px-4 mx-0 overflow-hidden absolute left-1/2 -translate-x-1/2"
-            style={{ height: "92.5vh", bottom: "7.5vh", width: "100%" }}
+            className="lg:hidden max-w-lg w-screen px-4 mx-0 overflow-hidden absolute left-1/2 -translate-x-1/2"
+            style={{ height: "100dvh", width: "100%" }}
           >
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
-              className="flex flex-col h-[92.5vh] relative"
-              style={{ height: "92.5vh" }}
+              className="flex flex-col relative"
+              style={{ height: "100dvh" }}
             >
               <button
                 onClick={() => setShowSettings(true)}
@@ -1043,7 +1069,7 @@ export default function Home() {
                 />
               </div>
 
-              <div className="p-4 border-t border-dashed absolute bottom-0 left-1/2 -translate-x-1/2 bg-background/70 backdrop-blur-sm w-full z-50">
+              <div className="p-4 border-t border-dashed absolute bottom-0 left-1/2 -translate-x-1/2 bg-background2/70 backdrop-blur-sm w-full z-50">
                 <div className="flex items-center justify-between">
                   <Button
                     onClick={() => setShowTimer(true)}
@@ -1087,7 +1113,7 @@ export default function Home() {
             style={{ height: "92.5vh" }}
           >
             {/* Left Sidebar - Calendar & Navigation */}
-            <div className="w-lg border-r border-dashed flex flex-col bg-background/50 backdrop-blur-sm">
+            <div className="w-lg border-r border-dashed flex flex-col bg-background2/50 backdrop-blur-sm">
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}

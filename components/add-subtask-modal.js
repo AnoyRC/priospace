@@ -134,13 +134,13 @@ export function AddSubtaskModal({
 
   return (
     <div
-      className="fixed inset-0 bg-transparent backdrop-blur-sm flex items-end justify-center z-50"
+      className="fixed inset-0 bg-transparent backdrop-blur-sm flex items-end justify-center z-50 bottom-[81px]"
       onClick={(e) => e.target === e.currentTarget && handleClose()}
     >
       <div
         ref={modalRef}
         style={{ transform: "translateY(100%)", opacity: 0 }}
-        className="bg-white dark:bg-gray-900 rounded-t-3xl w-full max-w-lg max-h-[90vh] overflow-hidden shadow-2xl border-t border-gray-200 dark:border-gray-700"
+        className="bg-white dark:bg-gray-900 rounded-t-3xl w-full max-w-lg max-h-[80vh] overflow-hidden shadow-2xl border-t border-gray-200 dark:border-gray-700"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex justify-center pt-4 pb-3">
@@ -150,7 +150,7 @@ export function AddSubtaskModal({
           />
         </div>
 
-        <div className="px-6 pb-6 overflow-y-auto max-h-[calc(90vh-70px)]">
+        <div className="px-6 pb-6 overflow-y-auto max-h-[calc(80vh-70px)]">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
               <div className="p-2.5 bg-primary/10 rounded-xl">

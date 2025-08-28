@@ -80,10 +80,10 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background2">
+    <div className="min-h-screen bg-background">
       {/* Header */}
       <motion.header
-        className="fixed top-0 left-0 right-0 z-50 border-b bg-background2/95 flex items-center justify-center backdrop-blur supports-[backdrop-filter]:bg-background2/60"
+        className="fixed top-0 left-0 right-0 z-50 border-b bg-background/95 flex items-center justify-center backdrop-blur supports-[backdrop-filter]:bg-background/60"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}

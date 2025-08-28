@@ -23,17 +23,15 @@ export default function Home() {
   const [dailyTasks, setDailyTasks] = useState({});
   const [customTags, setCustomTags] = useState([]);
   const [habits, setHabits] = useState([]);
-  const [showTimer, setShowTimer] = useState(false);
-  const [showHabits, setShowHabits] = useState(false);
-  const [showAddTask, setShowAddTask] = useState(false);
-  const [showTaskOptions, setShowTaskOptions] = useState(false);
-  const [showAddSubtask, setShowAddSubtask] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
+
+  // Consolidated state for managing which modal is currently open.
+  // This ensures only one modal can be active at a time.
+  const [activeModal, setActiveModal] = useState(null); // e.g., 'timer', 'habits', 'settings'
+
   const [selectedTask, setSelectedTask] = useState(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showIntroScreen, setShowIntroScreen] = useState(true);
   const [parentTaskForSubtask, setParentTaskForSubtask] = useState(null);
-  const [showWebRTCShare, setShowWebRTCShare] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -127,58 +125,19 @@ export default function Home() {
     }
   }, [theme, darkMode, mounted]);
 
-  const isModalOpen =
-    showAddTask ||
-    showHabits ||
-    showTimer ||
-    showSettings ||
-    showTaskOptions ||
-    showAddSubtask ||
-    showWebRTCShare;
-
-  useEffect(() => {
-    const root = document.documentElement; // This is the <html> tag
-
-    if (isModalOpen) {
-      // When a modal is open, add the class
-      root.classList.add("modal-open-background");
-    } else {
-      // When all modals are closed, remove the class
-      root.classList.remove("modal-open-background");
-    }
-
-    // Optional: Cleanup function to ensure the class is removed if the component unmounts
-    return () => {
-      root.classList.remove("modal-open-background");
-    };
-  }, [isModalOpen]);
-
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (event) => {
       if (showIntroScreen) return;
 
-      const isEscapePressed = event.key === "Escape";
-
-      if (isEscapePressed) {
-        setShowAddTask(false);
-        setShowHabits(false);
-        setShowTimer(false);
-        setShowSettings(false);
-        setShowTaskOptions(false);
-        setShowAddSubtask(false);
+      // Escape key always closes any active modal
+      if (event.key === "Escape") {
+        setActiveModal(null);
         return;
       }
 
-      if (
-        showAddTask ||
-        showHabits ||
-        showTimer ||
-        showSettings ||
-        showTaskOptions ||
-        showAddSubtask ||
-        showWebRTCShare
-      ) {
+      // If a modal is already open, don't process other shortcuts
+      if (activeModal) {
         return;
       }
 
@@ -188,19 +147,19 @@ export default function Home() {
         switch (event.key.toLowerCase()) {
           case "a": // Ctrl/Cmd + A for Add Task
             event.preventDefault();
-            setShowAddTask(true);
+            setActiveModal("addTask");
             break;
           case "h": // Ctrl/Cmd + H for Habits
             event.preventDefault();
-            setShowHabits(true);
+            setActiveModal("habits");
             break;
           case "c": // Ctrl/Cmd + C for Timer
             event.preventDefault();
-            setShowTimer(true);
+            setActiveModal("timer");
             break;
           case "x": // Ctrl/Cmd + X for Settings
             event.preventDefault();
-            setShowSettings(true);
+            setActiveModal("settings");
             break;
           default:
             break;
@@ -213,16 +172,7 @@ export default function Home() {
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [
-    showAddTask,
-    showHabits,
-    showTimer,
-    showSettings,
-    showTaskOptions,
-    showAddSubtask,
-    showWebRTCShare,
-    showIntroScreen,
-  ]);
+  }, [activeModal, showIntroScreen]);
 
   // Save to localStorage whenever data changes
   useEffect(() => {
@@ -741,7 +691,7 @@ export default function Home() {
 
       setDailyTasks({ ...dailyTasks, [dateString]: updatedTasks });
       setParentTaskForSubtask(parentTask);
-      setShowAddSubtask(true);
+      setActiveModal("addSubtask");
     }
   };
 
@@ -890,7 +840,7 @@ export default function Home() {
 
   const handleTaskClick = (task) => {
     setSelectedTask(task);
-    setShowTaskOptions(true);
+    setActiveModal("taskOptions");
   };
 
   const exportData = () => {
@@ -916,7 +866,7 @@ export default function Home() {
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
-    setShowSettings(false); // Close settings after export
+    setActiveModal(null); // Close settings after export
   };
 
   const importData = () => {
@@ -959,7 +909,7 @@ export default function Home() {
             if (typeof data.darkMode === "boolean") setDarkMode(data.darkMode);
             if (data.theme) setTheme(data.theme);
             alert("Data imported successfully!");
-            setShowSettings(false); // Close settings after import
+            setActiveModal(null); // Close settings after import
           } catch (error) {
             alert("Error importing data. Please check the file format.");
           }
@@ -1000,10 +950,10 @@ export default function Home() {
       </AnimatePresence>
 
       {!showIntroScreen && (
-        <div className="relative h-full flex flex-col justify-end w-full transition-colors duration-300 bg-background2">
+        <div className="relative h-full flex flex-col justify-end w-full transition-colors duration-300 bg-background">
           {/* Mobile/Tablet Layout (up to lg) */}
           <div
-            className="lg:hidden max-w-lg w-screen px-4 mx-0 overflow-hidden absolute left-1/2 -translate-x-1/2"
+            className="lg:hidden max-w-lg w-screen mx-0 overflow-hidden absolute left-1/2 -translate-x-1/2"
             style={{ height: "100dvh", width: "100%" }}
           >
             <motion.div
@@ -1014,7 +964,7 @@ export default function Home() {
               style={{ height: "100dvh" }}
             >
               <button
-                onClick={() => setShowSettings(true)}
+                onClick={() => setActiveModal("settings")}
                 className="absolute left-1/2 -translate-x-1/2 z-10 bg-primary text-background rounded-lg flex items-center justify-center p-2"
               >
                 <Settings className="h-3 w-3" />
@@ -1024,7 +974,7 @@ export default function Home() {
               <motion.div
                 whileTap={{ scale: 0.98 }}
                 onClick={() => setSelectedDate(new Date())}
-                className="p-4 px-0 border-b border-dashed"
+                className="p-4 border-b border-dashed"
               >
                 <div className="flex items-center justify-between">
                   <DayNightCycle selectedDate={selectedDate} />
@@ -1051,14 +1001,14 @@ export default function Home() {
                 </div>
               </motion.div>
 
-              <div className="py-3 border-b border-dashed">
+              <div className="py-3 border-b border-dashed px-4">
                 <WeeklyCalendar
                   selectedDate={selectedDate}
                   onDateSelect={setSelectedDate}
                 />
               </div>
 
-              <div className="flex-1 overflow-hidden">
+              <div className="flex-1 overflow-hidden px-4">
                 <TaskList
                   tasks={allTasks}
                   customTags={customTags}
@@ -1069,10 +1019,10 @@ export default function Home() {
                 />
               </div>
 
-              <div className="p-4 border-t border-dashed absolute bottom-0 left-1/2 -translate-x-1/2 bg-background2/70 backdrop-blur-sm w-full z-50">
+              <div className="p-4 border-t border-dashed absolute bottom-0 left-1/2 h-[81px] px-4 -translate-x-1/2 bg-background/70 backdrop-blur-sm w-full z-[9999]">
                 <div className="flex items-center justify-between">
                   <Button
-                    onClick={() => setShowTimer(true)}
+                    onClick={() => setActiveModal("timer")}
                     variant="ghost"
                     size="lg"
                     className="flex-1 flex items-center justify-center px-4 sm:px-8 gap-2 font-extrabold hover:bg-accent/50 group dark:text-white"
@@ -1084,7 +1034,7 @@ export default function Home() {
                   </Button>
 
                   <Button
-                    onClick={() => setShowAddTask(true)}
+                    onClick={() => setActiveModal("addTask")}
                     size="lg"
                     className="mx-4 rounded-full w-12 h-12 px-4 sm:px-8 bg-primary hover:bg-primary/90 group hover:scale-110 transition-transform [&_svg]:size-5"
                   >
@@ -1092,7 +1042,7 @@ export default function Home() {
                   </Button>
 
                   <Button
-                    onClick={() => setShowHabits(true)}
+                    onClick={() => setActiveModal("habits")}
                     variant="ghost"
                     size="lg"
                     className="flex-1 flex items-center justify-center px-4 sm:px-8 gap-2 font-extrabold group hover:bg-accent/50 dark:text-white"
@@ -1105,6 +1055,99 @@ export default function Home() {
                 </div>
               </div>
             </motion.div>
+
+            {/* Modals - Same for both layouts */}
+            <AnimatePresence>
+              {activeModal === "settings" && (
+                <SettingsModal
+                  onClose={() => setActiveModal(null)}
+                  darkMode={darkMode}
+                  onToggleDarkMode={() => setDarkMode(!darkMode)}
+                  theme={theme}
+                  onThemeChange={setTheme}
+                  onExportData={exportData}
+                  onImportData={importData}
+                  onOpenWebRTCShare={() => setActiveModal("webRTCShare")}
+                />
+              )}
+
+              {activeModal === "webRTCShare" && (
+                <WebRTCShareModal
+                  onClose={() => setActiveModal(null)}
+                  dailyTasks={dailyTasks}
+                  customTags={customTags}
+                  habits={habits}
+                  darkMode={darkMode}
+                  theme={theme}
+                  onImportData={importDataFromWebRTC}
+                />
+              )}
+
+              {activeModal === "addTask" && (
+                <AddTaskModal
+                  onClose={() => setActiveModal(null)}
+                  onAddTask={addTask}
+                  customTags={customTags}
+                  onAddCustomTag={addCustomTag}
+                  selectedDate={selectedDate}
+                />
+              )}
+
+              {activeModal === "addSubtask" && parentTaskForSubtask && (
+                <AddSubtaskModal
+                  onClose={() => {
+                    setActiveModal(null);
+                    setParentTaskForSubtask(null);
+                  }}
+                  onAddSubtask={(title, tagId) => {
+                    addSubtask(parentTaskForSubtask.id, title, tagId);
+                  }}
+                  customTags={customTags}
+                  onAddCustomTag={addCustomTag}
+                  parentTask={parentTaskForSubtask}
+                />
+              )}
+
+              {activeModal === "taskOptions" && selectedTask && (
+                <TaskOptionsModal
+                  task={selectedTask}
+                  customTags={customTags}
+                  onClose={() => {
+                    setActiveModal(null);
+                    setSelectedTask(null);
+                  }}
+                  onUpdateTask={updateTask}
+                  onDeleteTask={deleteTask}
+                  onAddCustomTag={addCustomTag}
+                  onToggleTask={toggleTask}
+                  selectedDate={selectedDate}
+                  onTransferTask={transferTaskToCurrentDay}
+                  currentActualDate={new Date()}
+                  onAddSubtask={handleAddSubtask}
+                  allTasks={allTasks}
+                />
+              )}
+
+              {activeModal === "habits" && (
+                <HabitTracker
+                  habits={habits}
+                  customTags={customTags}
+                  onClose={() => setActiveModal(null)}
+                  onUpdateHabits={setHabits}
+                  onAddCustomTag={addCustomTag}
+                />
+              )}
+
+              {activeModal === "timer" && (
+                <TimerModal
+                  tasks={flatTaskList} // Use flattened list for timer
+                  onClose={() => setActiveModal(null)}
+                  onUpdateTaskTime={updateTaskTime}
+                  onUpdateTaskFocusTime={updateTaskFocusTime}
+                  onToggleTask={toggleTask}
+                />
+              )}
+            </AnimatePresence>
           </div>
 
           {/* Desktop Layout (lg and up) */}
@@ -1113,7 +1156,7 @@ export default function Home() {
             style={{ height: "92.5vh" }}
           >
             {/* Left Sidebar - Calendar & Navigation */}
-            <div className="w-lg border-r border-dashed flex flex-col bg-background2/50 backdrop-blur-sm">
+            <div className="w-lg border-r border-dashed flex flex-col bg-background/50 backdrop-blur-sm">
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -1129,7 +1172,7 @@ export default function Home() {
                     Prio Space
                   </div>
                   <button
-                    onClick={() => setShowSettings(true)}
+                    onClick={() => setActiveModal("settings")}
                     className="bg-primary text-background rounded-lg py-3 px-4 hover:bg-primary/90 transition-colors"
                   >
                     <Settings className="h-4 w-4" />
@@ -1177,7 +1220,7 @@ export default function Home() {
                 {/* Desktop Action Buttons */}
                 <div className="p-6 space-y-4 flex-1">
                   <Button
-                    onClick={() => setShowAddTask(true)}
+                    onClick={() => setActiveModal("addTask")}
                     size="lg"
                     className="w-full h-12 bg-primary hover:bg-primary/90 group hover:scale-[1.02] transition-all duration-200 [&_svg]:size-5 rounded-2xl"
                   >
@@ -1186,7 +1229,7 @@ export default function Home() {
                   </Button>
 
                   <Button
-                    onClick={() => setShowTimer(true)}
+                    onClick={() => setActiveModal("timer")}
                     variant="outline"
                     size="lg"
                     className="w-full h-12 font-bold hover:bg-accent/50 group hover:scale-[1.02] transition-all duration-200 rounded-2xl"
@@ -1196,7 +1239,7 @@ export default function Home() {
                   </Button>
 
                   <Button
-                    onClick={() => setShowHabits(true)}
+                    onClick={() => setActiveModal("habits")}
                     variant="outline"
                     size="lg"
                     className="w-full h-12 font-bold hover:bg-accent/50 group hover:scale-[1.02] transition-all duration-200 rounded-2xl"
@@ -1241,99 +1284,6 @@ export default function Home() {
               </motion.div>
             </div>
           </div>
-
-          {/* Modals - Same for both layouts */}
-          <AnimatePresence>
-            {showSettings && (
-              <SettingsModal
-                onClose={() => setShowSettings(false)}
-                darkMode={darkMode}
-                onToggleDarkMode={() => setDarkMode(!darkMode)}
-                theme={theme}
-                onThemeChange={setTheme}
-                onExportData={exportData}
-                onImportData={importData}
-                onOpenWebRTCShare={() => setShowWebRTCShare(true)}
-              />
-            )}
-
-            {showWebRTCShare && (
-              <WebRTCShareModal
-                onClose={() => setShowWebRTCShare(false)}
-                dailyTasks={dailyTasks}
-                customTags={customTags}
-                habits={habits}
-                darkMode={darkMode}
-                theme={theme}
-                onImportData={importDataFromWebRTC}
-              />
-            )}
-
-            {showAddTask && (
-              <AddTaskModal
-                onClose={() => setShowAddTask(false)}
-                onAddTask={addTask}
-                customTags={customTags}
-                onAddCustomTag={addCustomTag}
-                selectedDate={selectedDate}
-              />
-            )}
-
-            {showAddSubtask && parentTaskForSubtask && (
-              <AddSubtaskModal
-                onClose={() => {
-                  setShowAddSubtask(false);
-                  setParentTaskForSubtask(null);
-                }}
-                onAddSubtask={(title, tagId) => {
-                  addSubtask(parentTaskForSubtask.id, title, tagId);
-                }}
-                customTags={customTags}
-                onAddCustomTag={addCustomTag}
-                parentTask={parentTaskForSubtask}
-              />
-            )}
-
-            {showTaskOptions && selectedTask && (
-              <TaskOptionsModal
-                task={selectedTask}
-                customTags={customTags}
-                onClose={() => {
-                  setShowTaskOptions(false);
-                  setSelectedTask(null);
-                }}
-                onUpdateTask={updateTask}
-                onDeleteTask={deleteTask}
-                onAddCustomTag={addCustomTag}
-                onToggleTask={toggleTask}
-                selectedDate={selectedDate}
-                onTransferTask={transferTaskToCurrentDay}
-                currentActualDate={new Date()}
-                onAddSubtask={handleAddSubtask}
-                allTasks={allTasks}
-              />
-            )}
-
-            {showHabits && (
-              <HabitTracker
-                habits={habits}
-                customTags={customTags}
-                onClose={() => setShowHabits(false)}
-                onUpdateHabits={setHabits}
-                onAddCustomTag={addCustomTag}
-              />
-            )}
-
-            {showTimer && (
-              <TimerModal
-                tasks={flatTaskList} // Use flattened list for timer
-                onClose={() => setShowTimer(false)}
-                onUpdateTaskTime={updateTaskTime}
-                onUpdateTaskFocusTime={updateTaskFocusTime}
-                onToggleTask={toggleTask}
-              />
-            )}
-          </AnimatePresence>
         </div>
       )}
     </>

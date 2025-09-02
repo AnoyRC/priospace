@@ -6,18 +6,11 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "tauri": "tauri"
+    "lint": "next lint"
   },
   "dependencies": {
     "@radix-ui/react-select": "^2.2.5",
     "@radix-ui/react-slot": "^1.2.3",
-    "@tauri-apps/plugin-dialog": "^2.3.3",
-    "@tauri-apps/plugin-fs": "^2.4.2",
-    "@tauri-apps/plugin-opener": "^2.5.0",
-    "@tauri-apps/plugin-shell": "^2.3.1",
-    "@tauri-apps/plugin-sql": "^2.3.0",
-    "@tauri-apps/plugin-store": "^2.4.0",
     "autoprefixer": "^10.4.20",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -33,7 +26,6 @@
     "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
-    "@tauri-apps/cli": "^2.7.1",
     "postcss": "^8.5",
     "tailwindcss": "^3.4.17"
   }

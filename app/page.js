@@ -16,92 +16,109 @@ import { TimerModal } from "@/components/timer-modal";
 import { SettingsModal } from "@/components/settings-modal";
 import { IntroScreen } from "@/components/intro-screen";
 import { WebRTCShareModal } from "@/components/webrtc-share-modal";
+// CORRECTED: Import your new storage helper functions
+import { saveData, loadData } from "@/components/storage";
+import { writeTextFile } from "@tauri-apps/plugin-fs";
 
 export default function Home() {
+  // --- State definitions (unchanged) ---
   const [darkMode, setDarkMode] = useState(false);
   const [theme, setTheme] = useState("default");
   const [dailyTasks, setDailyTasks] = useState({});
   const [customTags, setCustomTags] = useState([]);
   const [habits, setHabits] = useState([]);
-
-  // Consolidated state for managing which modal is currently open.
-  // This ensures only one modal can be active at a time.
-  const [activeModal, setActiveModal] = useState(null); // e.g., 'timer', 'habits', 'settings'
-
+  const [activeModal, setActiveModal] = useState(null);
   const [selectedTask, setSelectedTask] = useState(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showIntroScreen, setShowIntroScreen] = useState(true);
   const [parentTaskForSubtask, setParentTaskForSubtask] = useState(null);
   const [mounted, setMounted] = useState(false);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  // --- REFACTORED PERSISTENCE LOGIC ---
 
-  // Load data from localStorage on mount
+  // 1. Load all data from the file system on initial app mount
+  useEffect(() => {
+    const initializeApp = async () => {
+      // Safety Check: Only run storage logic if inside a Tauri window
+      if (window.__TAURI_INTERNALS__) {
+        const savedData = await loadData();
+
+        if (savedData) {
+          console.log("[Home] Hydrating state from loaded data.");
+          setDarkMode(savedData.darkMode || false);
+          setTheme(savedData.theme || "default");
+          setCustomTags(savedData.customTags || []);
+          setHabits(savedData.habits || []);
+
+          // Re-hydrate tasks with Date objects after loading from JSON
+          if (savedData.dailyTasks) {
+            const converted = {};
+            Object.keys(savedData.dailyTasks).forEach((dateKey) => {
+              converted[dateKey] = savedData.dailyTasks[dateKey].map((task) => {
+                const processedSubtasks = (task.subtasks || []).map(
+                  (subtask) => ({
+                    ...subtask,
+                    createdAt: new Date(subtask.createdAt || task.createdAt),
+                    focusTime: subtask.focusTime || 0,
+                    timeSpent: subtask.timeSpent || 0,
+                    completed: !!subtask.completed,
+                    parentTaskId: task.id,
+                    subtasks: [],
+                  })
+                );
+                return {
+                  ...task,
+                  createdAt: new Date(task.createdAt),
+                  focusTime: task.focusTime || 0,
+                  timeSpent: task.timeSpent || 0,
+                  completed: !!task.completed,
+                  subtasks: processedSubtasks,
+                  subtasksExpanded: task.subtasksExpanded || false,
+                };
+              });
+            });
+            setDailyTasks(converted);
+          }
+        }
+      } else {
+        console.warn(
+          "[Home] Not running in Tauri, skipping file system load. Using default state."
+        );
+      }
+      // Set mounted to true only after all initial data is loaded/set
+      setMounted(true);
+    };
+
+    initializeApp();
+  }, []); // Empty dependency array ensures this runs only once on mount
+
+  // 2. Save all data to the file system whenever a piece of state changes
+  useEffect(() => {
+    // Prevent saving on the initial render before data has been loaded
+    if (!mounted) {
+      return;
+    }
+
+    // Safety Check: Only run storage logic if inside a Tauri window
+    if (window.__TAURI_INTERNALS__) {
+      console.log("[Home] State changed, triggering save...");
+      const appState = {
+        darkMode,
+        theme,
+        dailyTasks,
+        customTags,
+        habits,
+      };
+      saveData(appState);
+    }
+  }, [darkMode, theme, dailyTasks, customTags, habits, mounted]); // Dependency array triggers save on any state change
+
+  // --- END OF REFACTORED PERSISTENCE LOGIC ---
+
+  // Apply theme classes to document (unchanged)
   useEffect(() => {
     if (!mounted) return;
-
-    const savedDarkMode = localStorage.getItem("darkMode");
-    if (savedDarkMode) {
-      setDarkMode(JSON.parse(savedDarkMode));
-    }
-
-    const savedTheme = localStorage.getItem("theme");
-    if (savedTheme) {
-      setTheme(savedTheme);
-    }
-
-    const savedDailyTasks = localStorage.getItem("dailyTasks");
-    if (savedDailyTasks) {
-      const parsed = JSON.parse(savedDailyTasks);
-      // Convert date strings back to Date objects and ensure all fields exist
-      const converted = {};
-      Object.keys(parsed).forEach((dateKey) => {
-        converted[dateKey] = parsed[dateKey].map((task) => {
-          // Ensure subtasks are properly structured
-          const processedSubtasks = (task.subtasks || []).map((subtask) => ({
-            ...subtask,
-            createdAt: new Date(subtask.createdAt || task.createdAt),
-            focusTime: subtask.focusTime || 0,
-            timeSpent: subtask.timeSpent || 0,
-            completed: !!subtask.completed,
-            parentTaskId: task.id,
-            subtasks: [], // Subtasks don't have their own subtasks
-          }));
-
-          return {
-            ...task,
-            createdAt: new Date(task.createdAt),
-            focusTime: task.focusTime || 0,
-            timeSpent: task.timeSpent || 0,
-            completed: !!task.completed,
-            subtasks: processedSubtasks,
-            subtasksExpanded: task.subtasksExpanded || false,
-          };
-        });
-      });
-      setDailyTasks(converted);
-    }
-
-    const savedCustomTags = localStorage.getItem("customTags");
-    if (savedCustomTags) {
-      setCustomTags(JSON.parse(savedCustomTags));
-    }
-
-    const savedHabits = localStorage.getItem("habits");
-    if (savedHabits) {
-      setHabits(JSON.parse(savedHabits));
-    }
-  }, [mounted]);
-
-  // Apply theme classes to document
-  useEffect(() => {
-    if (!mounted) return;
-
     const root = document.documentElement;
-
-    // Remove all theme classes
     root.classList.remove(
       "theme-nature",
       "theme-neo-brutal",
@@ -111,53 +128,36 @@ export default function Home() {
       "theme-twitter",
       "theme-amber-minimal"
     );
-
-    // Add current theme class (except for default)
-    if (theme !== "default") {
-      root.classList.add(`theme-${theme}`);
-    }
-
-    // Handle dark mode
-    if (darkMode) {
-      root.classList.add("dark");
-    } else {
-      root.classList.remove("dark");
-    }
+    if (theme !== "default") root.classList.add(`theme-${theme}`);
+    if (darkMode) root.classList.add("dark");
+    else root.classList.remove("dark");
   }, [theme, darkMode, mounted]);
 
-  // Keyboard shortcuts
+  // Keyboard shortcuts (unchanged)
   useEffect(() => {
     const handleKeyDown = (event) => {
       if (showIntroScreen) return;
-
-      // Escape key always closes any active modal
       if (event.key === "Escape") {
         setActiveModal(null);
         return;
       }
-
-      // If a modal is already open, don't process other shortcuts
-      if (activeModal) {
-        return;
-      }
-
-      const isModifierPressed = event.ctrlKey || event.metaKey; // Ctrl for Windows/Linux, Cmd for Mac
-
+      if (activeModal) return;
+      const isModifierPressed = event.ctrlKey || event.metaKey;
       if (isModifierPressed) {
         switch (event.key.toLowerCase()) {
-          case "a": // Ctrl/Cmd + A for Add Task
+          case "a":
             event.preventDefault();
             setActiveModal("addTask");
             break;
-          case "h": // Ctrl/Cmd + H for Habits
+          case "h":
             event.preventDefault();
             setActiveModal("habits");
             break;
-          case "c": // Ctrl/Cmd + C for Timer
+          case "c":
             event.preventDefault();
             setActiveModal("timer");
             break;
-          case "x": // Ctrl/Cmd + X for Settings
+          case "x":
             event.preventDefault();
             setActiveModal("settings");
             break;
@@ -166,35 +166,14 @@ export default function Home() {
         }
       }
     };
-
     document.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-    };
+    return () => document.removeEventListener("keydown", handleKeyDown);
   }, [activeModal, showIntroScreen]);
 
-  // Save to localStorage whenever data changes
-  useEffect(() => {
-    localStorage.setItem("darkMode", JSON.stringify(darkMode));
-  }, [darkMode]);
+  // --- ALL COMPONENT LOGIC FUNCTIONS BELOW ARE UNCHANGED ---
 
-  useEffect(() => {
-    localStorage.setItem("theme", theme);
-  }, [theme]);
-
-  useEffect(() => {
-    localStorage.setItem("dailyTasks", JSON.stringify(dailyTasks));
-  }, [dailyTasks]);
-
-  useEffect(() => {
-    localStorage.setItem("customTags", JSON.stringify(customTags));
-  }, [customTags]);
-
-  useEffect(() => {
-    localStorage.setItem("habits", JSON.stringify(habits));
-  }, [habits]);
-
+  // (Your functions like getDateString, getCurrentDayTasks, addTask, importDataFromWebRTC, etc., are all here and unchanged)
+  // ... Paste all your original component logic functions here ...
   const getDateString = (date) => {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -843,7 +822,7 @@ export default function Home() {
     setActiveModal("taskOptions");
   };
 
-  const exportData = () => {
+  const exportData = async () => {
     const data = {
       dailyTasks,
       customTags,
@@ -853,20 +832,28 @@ export default function Home() {
       exportDate: new Date().toISOString(),
       version: "3.0", // Update version for subtasks support
     };
+
     const dataStr = JSON.stringify(data, null, 2);
-    const dataBlob = new Blob([dataStr], { type: "application/json" });
-    const url = URL.createObjectURL(dataBlob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `todo-app-backup-${
-      new Date().toISOString().split("T")[0]
-    }.json`;
-    link.style.display = "none";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    setActiveModal(null); // Close settings after export
+
+    // Ask user where to save
+    const filePath = await save({
+      filters: [
+        {
+          name: "JSON",
+          extensions: ["json"],
+        },
+      ],
+      defaultPath: `todo-app-backup-${
+        new Date().toISOString().split("T")[0]
+      }.json`,
+    });
+
+    if (filePath) {
+      await writeTextFile(filePath, dataStr);
+      setShowSettings(false);
+    } else {
+      console.log("User cancelled export.");
+    }
   };
 
   const importData = () => {
@@ -940,6 +927,8 @@ export default function Home() {
   if (!mounted) {
     return null; // Or you can return a loading skeleton component here
   }
+
+  // --- JSX (unchanged) ---
 
   return (
     <>
@@ -1056,7 +1045,6 @@ export default function Home() {
               </div>
             </motion.div>
 
-            {/* Modals - Same for both layouts */}
             <AnimatePresence>
               {activeModal === "settings" && (
                 <SettingsModal
@@ -1152,8 +1140,8 @@ export default function Home() {
 
           {/* Desktop Layout (lg and up) */}
           <div
-            className="hidden lg:flex max-h-[92.5vh] h-[92.5vh] overflow-hidden"
-            style={{ height: "92.5vh" }}
+            className="hidden lg:flex overflow-hidden"
+            style={{ height: "100dvh" }}
           >
             {/* Left Sidebar - Calendar & Navigation */}
             <div className="w-lg border-r border-dashed flex flex-col bg-background/50 backdrop-blur-sm">
@@ -1283,6 +1271,98 @@ export default function Home() {
                 </div>
               </motion.div>
             </div>
+
+            <AnimatePresence>
+              {activeModal === "settings" && (
+                <SettingsModal
+                  onClose={() => setActiveModal(null)}
+                  darkMode={darkMode}
+                  onToggleDarkMode={() => setDarkMode(!darkMode)}
+                  theme={theme}
+                  onThemeChange={setTheme}
+                  onExportData={exportData}
+                  onImportData={importData}
+                  onOpenWebRTCShare={() => setActiveModal("webRTCShare")}
+                />
+              )}
+
+              {activeModal === "webRTCShare" && (
+                <WebRTCShareModal
+                  onClose={() => setActiveModal(null)}
+                  dailyTasks={dailyTasks}
+                  customTags={customTags}
+                  habits={habits}
+                  darkMode={darkMode}
+                  theme={theme}
+                  onImportData={importDataFromWebRTC}
+                />
+              )}
+
+              {activeModal === "addTask" && (
+                <AddTaskModal
+                  onClose={() => setActiveModal(null)}
+                  onAddTask={addTask}
+                  customTags={customTags}
+                  onAddCustomTag={addCustomTag}
+                  selectedDate={selectedDate}
+                />
+              )}
+
+              {activeModal === "addSubtask" && parentTaskForSubtask && (
+                <AddSubtaskModal
+                  onClose={() => {
+                    setActiveModal(null);
+                    setParentTaskForSubtask(null);
+                  }}
+                  onAddSubtask={(title, tagId) => {
+                    addSubtask(parentTaskForSubtask.id, title, tagId);
+                  }}
+                  customTags={customTags}
+                  onAddCustomTag={addCustomTag}
+                  parentTask={parentTaskForSubtask}
+                />
+              )}
+
+              {activeModal === "taskOptions" && selectedTask && (
+                <TaskOptionsModal
+                  task={selectedTask}
+                  customTags={customTags}
+                  onClose={() => {
+                    setActiveModal(null);
+                    setSelectedTask(null);
+                  }}
+                  onUpdateTask={updateTask}
+                  onDeleteTask={deleteTask}
+                  onAddCustomTag={addCustomTag}
+                  onToggleTask={toggleTask}
+                  selectedDate={selectedDate}
+                  onTransferTask={transferTaskToCurrentDay}
+                  currentActualDate={new Date()}
+                  onAddSubtask={handleAddSubtask}
+                  allTasks={allTasks}
+                />
+              )}
+
+              {activeModal === "habits" && (
+                <HabitTracker
+                  habits={habits}
+                  customTags={customTags}
+                  onClose={() => setActiveModal(null)}
+                  onUpdateHabits={setHabits}
+                  onAddCustomTag={addCustomTag}
+                />
+              )}
+
+              {activeModal === "timer" && (
+                <TimerModal
+                  tasks={flatTaskList} // Use flattened list for timer
+                  onClose={() => setActiveModal(null)}
+                  onUpdateTaskTime={updateTaskTime}
+                  onUpdateTaskFocusTime={updateTaskFocusTime}
+                  onToggleTask={toggleTask}
+                />
+              )}
+            </AnimatePresence>
           </div>
         </div>
       )}

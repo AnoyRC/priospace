@@ -16,6 +16,7 @@ import {
   Wifi,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { openUrl } from "@tauri-apps/plugin-opener";
 
 export function SettingsModal({
   onClose,
@@ -144,21 +145,20 @@ export function SettingsModal({
   // --- END OF ANIMATIONS ---
 
   const handleBuyMeCoffee = () => {
-    window.open("https://coff.ee/anoy", "_blank");
+    openUrl("https://coff.ee/anoy");
   };
 
   const handleTwitterClick = () => {
-    window.open("https://x.com/Anoyroyc", "_blank");
+    openUrl("https://x.com/Anoyroyc");
   };
 
   const handleWebRTCShare = () => {
-    handleClose(); // Close settings first
-    setTimeout(onOpenWebRTCShare, 100); // Open WebRTC share modal after a short delay
+    onOpenWebRTCShare();
   };
 
   return (
     <div
-      className="fixed inset-0 bg-transparent backdrop-blur-sm flex items-end bottom-[81px] justify-center z-50"
+      className="fixed inset-0 bg-transparent backdrop-blur-sm flex items-end bottom-[81px] lg:bottom-0 justify-center z-50"
       onClick={(e) => e.target === e.currentTarget && handleClose()}
     >
       <div

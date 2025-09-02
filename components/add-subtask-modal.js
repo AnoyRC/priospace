@@ -134,7 +134,7 @@ export function AddSubtaskModal({
 
   return (
     <div
-      className="fixed inset-0 bg-transparent backdrop-blur-sm flex items-end justify-center z-50 bottom-[81px]"
+      className="fixed inset-0 bg-transparent backdrop-blur-sm flex items-end justify-center z-50 bottom-[81px] lg:bottom-0"
       onClick={(e) => e.target === e.currentTarget && handleClose()}
     >
       <div

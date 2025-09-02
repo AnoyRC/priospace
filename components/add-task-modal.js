@@ -166,7 +166,7 @@ export function AddTaskModal({
 
   return (
     <div
-      className="fixed inset-0 bg-transparent backdrop-blur-sm flex items-end bottom-[81px] justify-center z-50"
+      className="fixed inset-0 bg-transparent backdrop-blur-sm flex items-end bottom-[81px] lg:bottom-0 justify-center z-50"
       onClick={(e) => e.target === e.currentTarget && handleClose()}
     >
       <div

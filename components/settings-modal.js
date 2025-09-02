@@ -16,7 +16,6 @@ import {
   Wifi,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { openUrl } from "@tauri-apps/plugin-opener";
 
 export function SettingsModal({
   onClose,
@@ -145,11 +144,11 @@ export function SettingsModal({
   // --- END OF ANIMATIONS ---
 
   const handleBuyMeCoffee = () => {
-    openUrl("https://coff.ee/anoy");
+    window.open("https://coff.ee/anoy", "_blank");
   };
 
   const handleTwitterClick = () => {
-    openUrl("https://x.com/Anoyroyc");
+    window.open("https://x.com/Anoyroyc", "_blank");
   };
 
   const handleWebRTCShare = () => {

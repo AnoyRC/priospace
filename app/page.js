@@ -16,6 +16,7 @@ import { TimerModal } from "@/components/timer-modal";
 import { SettingsModal } from "@/components/settings-modal";
 import { IntroScreen } from "@/components/intro-screen";
 import { WebRTCShareModal } from "@/components/webrtc-share-modal";
+import { Filesystem, Directory, Encoding } from "@capacitor/filesystem";
 
 export default function Home() {
   // --- State definitions ---
@@ -726,30 +727,38 @@ export default function Home() {
     setActiveModal("taskOptions");
   };
 
-  // Replaced Tauri export with browser-based download
-  const exportData = () => {
-    const data = {
-      dailyTasks,
-      customTags,
-      habits,
-      darkMode,
-      theme,
-      exportDate: new Date().toISOString(),
-      version: "3.0",
-    };
-    const dataStr = JSON.stringify(data, null, 2);
-    const dataBlob = new Blob([dataStr], { type: "application/json" });
-    const url = URL.createObjectURL(dataBlob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `todo-app-backup-${
-      new Date().toISOString().split("T")[0]
-    }.json`;
-    link.style.display = "none";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+  const exportData = async () => {
+    try {
+      const data = {
+        dailyTasks,
+        customTags,
+        habits,
+        darkMode,
+        theme,
+        exportDate: new Date().toISOString(),
+        version: "3.0",
+      };
+      const dataStr = JSON.stringify(data, null, 2);
+      const fileName = `PrioSpace-backup-${
+        new Date().toISOString().split("T")[0]
+      }.json`;
+
+      // Use the Filesystem plugin to write the file
+      await Filesystem.writeFile({
+        path: fileName,
+        data: dataStr,
+        directory: Directory.Documents, // Saves to the user's Documents folder
+        encoding: Encoding.UTF8,
+      });
+
+      // Let the user know it was successful
+      alert(
+        `Backup saved successfully to your Documents folder as:\n${fileName}`
+      );
+    } catch (error) {
+      console.error("Error saving file", error);
+      alert(`Error: Could not save backup file.\n${error.message}`);
+    }
   };
 
   const importData = () => {
@@ -836,14 +845,17 @@ export default function Home() {
           {/* Mobile/Tablet Layout (up to lg) */}
           <div
             className="lg:hidden max-w-lg w-screen mx-0 overflow-hidden absolute left-1/2 -translate-x-1/2"
-            style={{ height: "100dvh", width: "100%" }}
+            style={{
+              height: "100dvh",
+              width: "100%",
+            }}
           >
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
               className="flex flex-col relative"
-              style={{ height: "100dvh" }}
+              style={{ height: "100dvh", paddingTop: "6dvh" }}
             >
               <button
                 onClick={() => setActiveModal("settings")}
@@ -901,7 +913,7 @@ export default function Home() {
                 />
               </div>
 
-              <div className="p-4 border-t border-dashed absolute bottom-0 left-1/2 h-[81px] px-4 -translate-x-1/2 bg-background/70 backdrop-blur-sm w-full z-[9999]">
+              <div className="p-4 border-t border-dashed absolute bottom-0 left-1/2 h-[100px] px-4 -translate-x-1/2 bg-background/70 backdrop-blur-sm w-full z-[9999]">
                 <div className="flex items-center justify-between">
                   <Button
                     onClick={() => setActiveModal("timer")}

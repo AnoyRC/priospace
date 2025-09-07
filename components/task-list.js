@@ -378,21 +378,17 @@ function TaskItem({
           )}
 
           <div
-            className="flex-shrink-0 h-12 w-12 flex items-center justify-center cursor-pointer"
+            className="flex-shrink-0 h-12 w-12 flex items-center justify-center cursor-pointer transition-none"
             onClick={(e) => onToggleTask(task.id, e)}
           >
             <div
-              className={`flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-200 mr-4 active:scale-90 ${
+              className={`flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center duration-200 mr-4 active:scale-90 transition-none ${
                 task.completed
                   ? "bg-primary border-primary"
                   : "border-primary/50 border-dotted"
               }`}
             >
-              <div
-                className={`transition-transform duration-200 ${
-                  task.completed ? "scale-100" : "scale-0"
-                }`}
-              >
+              <div className={` ${task.completed ? "scale-100" : "scale-0"}`}>
                 <Check className="h-3 w-3 text-white" />
               </div>
             </div>

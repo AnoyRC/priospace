@@ -2,10 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  background-color: #000;
-}
-
 /* Default Theme */
 :root {
   --background: 55.0000 30.0000% 92.1569%;

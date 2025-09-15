@@ -150,11 +150,12 @@ export function DayNightCycle({ selectedDate }) {
         <div className="text-4xl font-extrabold flex items-center">
           <AnimatedWeekday dayIndex={dayIndex} fontSize={32} />
         </div>
-        {isDay ? (
-          <Sun className="h-7 w-7 text-yellow-500" />
-        ) : (
-          <Moon className="h-7 w-7 text-blue-500" />
-        )}
+        {isToday(selectedDate) &&
+          (isDay ? (
+            <Sun className="h-7 w-7 text-yellow-500" />
+          ) : (
+            <Moon className="h-7 w-7 text-blue-500" />
+          ))}
       </div>
     </div>
   );

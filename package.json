@@ -13,6 +13,7 @@
     "@capacitor/core": "^7.4.3",
     "@capacitor/filesystem": "^7.1.4",
     "@capacitor/ios": "^7.4.3",
+    "@capacitor/splash-screen": "^7.0.3",
     "@radix-ui/react-select": "^2.2.5",
     "@radix-ui/react-slot": "^1.2.3",
     "autoprefixer": "^10.4.20",

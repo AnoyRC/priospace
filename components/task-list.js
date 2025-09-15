@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   Calendar,
   Check,
@@ -11,6 +11,7 @@ import {
   Plus,
 } from "lucide-react";
 import { formatFocusTime } from "@/utils/time";
+import { gsap } from "gsap";
 
 export function TaskList({
   tasks,
@@ -27,6 +28,9 @@ export function TaskList({
   });
 
   const completeAudioRef = useRef(null);
+  const taskRefs = useRef({});
+  const sectionRefs = useRef({});
+  const chevronRefs = useRef({});
 
   if (typeof window !== "undefined") {
     if (!completeAudioRef.current) {
@@ -34,6 +38,29 @@ export function TaskList({
       completeAudioRef.current.volume = 0.3;
     }
   }
+
+  useEffect(() => {
+    // Animate task list entrance
+    const taskElements = Object.values(taskRefs.current).filter(Boolean);
+    if (taskElements.length > 0) {
+      gsap.fromTo(
+        taskElements,
+        {
+          opacity: 0,
+          y: 20,
+          scale: 0.95,
+        },
+        {
+          opacity: 1,
+          y: 0,
+          scale: 1,
+          duration: 0.6,
+          stagger: 0.1,
+          ease: "power2.out",
+        }
+      );
+    }
+  }, [tasks.length]);
 
   const playCompleteSound = () => {
     if (completeAudioRef.current) {
@@ -45,28 +72,178 @@ export function TaskList({
   };
 
   const handleTaskClick = (task, event) => {
+    // Animate task click
+    const taskElement = taskRefs.current[task.id];
+    if (taskElement) {
+      gsap.to(taskElement, {
+        scale: 0.98,
+        duration: 0.1,
+        yoyo: true,
+        repeat: 1,
+        ease: "power2.inOut",
+      });
+    }
     onTaskClick(task);
   };
 
   const handleToggleTask = (taskId, event) => {
     event.stopPropagation();
     const task = findTaskById(taskId);
+    const taskElement = taskRefs.current[taskId];
+
     if (task && !task.completed) {
       playCompleteSound();
+
+      // Completion animation
+      if (taskElement) {
+        const checkmarkElement = taskElement.querySelector(".checkmark");
+        const titleElement = taskElement.querySelector(".task-title");
+
+        // Animate checkmark appearance with inner glow
+        gsap
+          .timeline()
+          .to(checkmarkElement, {
+            scale: 1.2,
+            boxShadow:
+              "inset 0 0 15px rgba(59, 130, 246, 0.8), inset 0 0 25px rgba(59, 130, 246, 0.6)",
+            duration: 0.2,
+            ease: "back.out(1.7)",
+          })
+          .to(checkmarkElement, {
+            scale: 1,
+            boxShadow: "inset 0 0 8px rgba(59, 130, 246, 0.4)",
+            duration: 0.3,
+            ease: "power2.out",
+          })
+          .to(checkmarkElement, {
+            boxShadow: "none",
+            duration: 0.4,
+            ease: "power2.out",
+          })
+          .to(
+            titleElement,
+            {
+              opacity: 0.7,
+              duration: 0.3,
+              ease: "power2.out",
+            },
+            0
+          );
+      }
+    } else if (task && task.completed) {
+      // Uncomplete animation
+      if (taskElement) {
+        const titleElement = taskElement.querySelector(".task-title");
+        const checkmarkElement = taskElement.querySelector(".checkmark");
+
+        gsap.to(titleElement, {
+          opacity: 1,
+          duration: 0.3,
+          ease: "power2.out",
+        });
+
+        // Remove any lingering glow
+        gsap.set(checkmarkElement, {
+          boxShadow: "none",
+        });
+      }
     }
+
     onToggleTask(taskId);
   };
 
   const toggleExpanded = (taskId, event) => {
     event.stopPropagation();
     event.preventDefault();
-    setExpandedTasks((prev) => ({
-      ...prev,
-      [taskId]: !prev[taskId],
-    }));
+
+    const chevronElement = chevronRefs.current[taskId];
+    const isCurrentlyExpanded = expandedTasks[taskId];
+
+    // Animate chevron rotation
+    if (chevronElement) {
+      gsap.to(chevronElement, {
+        rotation: isCurrentlyExpanded ? 0 : 90,
+        duration: 0.3,
+        ease: "power2.out",
+      });
+    }
+
+    setExpandedTasks((prev) => {
+      const newExpanded = {
+        ...prev,
+        [taskId]: !prev[taskId],
+      };
+
+      // Animate subtasks
+      setTimeout(() => {
+        const subtaskElements = taskRefs.current[`${taskId}-subtasks`];
+        if (subtaskElements) {
+          if (!isCurrentlyExpanded) {
+            // Expanding
+            gsap.fromTo(
+              subtaskElements.children,
+              {
+                opacity: 0,
+                x: -20,
+                height: 0,
+              },
+              {
+                opacity: 1,
+                x: 0,
+                height: "auto",
+                duration: 0.4,
+                stagger: 0.05,
+                ease: "power2.out",
+              }
+            );
+          }
+        }
+      }, 50);
+
+      return newExpanded;
+    });
   };
 
   const toggleSection = (section) => {
+    const sectionElement = sectionRefs.current[section];
+    const chevronElement = chevronRefs.current[`section-${section}`];
+    const isCurrentlyCollapsed = collapsedSections[section];
+
+    // Animate section chevron
+    if (chevronElement) {
+      gsap.to(chevronElement, {
+        rotation: isCurrentlyCollapsed ? 0 : -90,
+        duration: 0.3,
+        ease: "power2.out",
+      });
+    }
+
+    // Animate section content
+    if (sectionElement) {
+      if (isCurrentlyCollapsed) {
+        // Expanding
+        gsap.to(sectionElement, {
+          height: "auto",
+          opacity: 1,
+          duration: 0.4,
+          ease: "power2.out",
+        });
+        gsap.fromTo(
+          sectionElement.children,
+          { y: -10, opacity: 0 },
+          { y: 0, opacity: 1, duration: 0.3, stagger: 0.05, delay: 0.1 }
+        );
+      } else {
+        // Collapsing
+        gsap.to(sectionElement, {
+          height: 0,
+          opacity: 0,
+          duration: 0.3,
+          ease: "power2.in",
+        });
+      }
+    }
+
     setCollapsedSections((prev) => ({
       ...prev,
       [section]: !prev[section],
@@ -75,6 +252,22 @@ export function TaskList({
 
   const handleAddSubtask = (taskId, event) => {
     event.stopPropagation();
+
+    // Animate add button
+    const addButton = event.currentTarget;
+    gsap
+      .timeline()
+      .to(addButton, {
+        scale: 0.9,
+        duration: 0.1,
+        ease: "power2.out",
+      })
+      .to(addButton, {
+        scale: 1,
+        duration: 0.2,
+        ease: "back.out(1.7)",
+      });
+
     onAddSubtask(taskId);
   };
 
@@ -142,9 +335,8 @@ export function TaskList({
             className="w-full text-left text-sm text-primary font-extrabold uppercase tracking-wide mb-3 flex items-center gap-2 hover:text-primary/80 transition-colors"
           >
             <div
-              className={`transition-transform duration-200 ${
-                collapsedSections.habits ? "-rotate-90" : "rotate-0"
-              }`}
+              ref={(el) => (chevronRefs.current["section-habits"] = el)}
+              className="transition-transform duration-200"
             >
               <ChevronDown className="h-4 w-4" />
             </div>
@@ -154,32 +346,32 @@ export function TaskList({
           </button>
 
           <div
-            className={`grid transition-all duration-300 ease-in-out ${
-              collapsedSections.habits
-                ? "grid-rows-[0fr] opacity-0"
-                : "grid-rows-[1fr] opacity-100"
+            ref={(el) => (sectionRefs.current.habits = el)}
+            className={`overflow-hidden ${
+              collapsedSections.habits ? "h-0 opacity-0" : "h-auto opacity-100"
             }`}
+            style={{ transition: "none" }}
           >
-            <div className="overflow-hidden">
-              {sortedHabitTasks.map((task, index) => (
-                <TaskItem
-                  key={task.id}
-                  task={task}
-                  onTaskClick={handleTaskClick}
-                  onToggleTask={handleToggleTask}
-                  onToggleExpanded={toggleExpanded}
-                  onAddSubtask={handleAddSubtask}
-                  formatTime={formatTime}
-                  getTagInfo={getTagInfo}
-                  getTotalTime={getTotalTime}
-                  getTotalFocusTime={getTotalFocusTime}
-                  isHabit={true}
-                  isLastTask={index === sortedHabitTasks.length - 1}
-                  isExpanded={expandedTasks[task.id] || false}
-                  level={0}
-                />
-              ))}
-            </div>
+            {sortedHabitTasks.map((task, index) => (
+              <TaskItem
+                key={task.id}
+                task={task}
+                onTaskClick={handleTaskClick}
+                onToggleTask={handleToggleTask}
+                onToggleExpanded={toggleExpanded}
+                onAddSubtask={handleAddSubtask}
+                formatTime={formatTime}
+                getTagInfo={getTagInfo}
+                getTotalTime={getTotalTime}
+                getTotalFocusTime={getTotalFocusTime}
+                isHabit={true}
+                isLastTask={index === sortedHabitTasks.length - 1}
+                isExpanded={expandedTasks[task.id] || false}
+                level={0}
+                taskRefs={taskRefs}
+                chevronRefs={chevronRefs}
+              />
+            ))}
           </div>
         </div>
       )}
@@ -192,9 +384,8 @@ export function TaskList({
             className="w-full text-left text-sm text-primary font-extrabold uppercase tracking-wide mb-3 flex items-center gap-2 hover:text-primary/80 transition-colors"
           >
             <div
-              className={`transition-transform duration-200 ${
-                collapsedSections.tasks ? "-rotate-90" : "rotate-0"
-              }`}
+              ref={(el) => (chevronRefs.current["section-tasks"] = el)}
+              className="transition-transform duration-200"
             >
               <ChevronDown className="h-4 w-4" />
             </div>
@@ -204,32 +395,32 @@ export function TaskList({
           </button>
 
           <div
-            className={`grid transition-all duration-300 ease-in-out ${
-              collapsedSections.tasks
-                ? "grid-rows-[0fr] opacity-0"
-                : "grid-rows-[1fr] opacity-100"
+            ref={(el) => (sectionRefs.current.tasks = el)}
+            className={`overflow-hidden ${
+              collapsedSections.tasks ? "h-0 opacity-0" : "h-auto opacity-100"
             }`}
+            style={{ transition: "none" }}
           >
-            <div className="overflow-hidden">
-              {sortedRegularTasks.map((task, index) => (
-                <TaskItem
-                  key={task.id}
-                  task={task}
-                  onTaskClick={handleTaskClick}
-                  onToggleTask={handleToggleTask}
-                  onToggleExpanded={toggleExpanded}
-                  onAddSubtask={handleAddSubtask}
-                  formatTime={formatTime}
-                  getTagInfo={getTagInfo}
-                  getTotalTime={getTotalTime}
-                  getTotalFocusTime={getTotalFocusTime}
-                  isHabit={false}
-                  isLastTask={index === sortedRegularTasks.length - 1}
-                  isExpanded={expandedTasks[task.id] || false}
-                  level={0}
-                />
-              ))}
-            </div>
+            {sortedRegularTasks.map((task, index) => (
+              <TaskItem
+                key={task.id}
+                task={task}
+                onTaskClick={handleTaskClick}
+                onToggleTask={handleToggleTask}
+                onToggleExpanded={toggleExpanded}
+                onAddSubtask={handleAddSubtask}
+                formatTime={formatTime}
+                getTagInfo={getTagInfo}
+                getTotalTime={getTotalTime}
+                getTotalFocusTime={getTotalFocusTime}
+                isHabit={false}
+                isLastTask={index === sortedRegularTasks.length - 1}
+                isExpanded={expandedTasks[task.id] || false}
+                level={0}
+                taskRefs={taskRefs}
+                chevronRefs={chevronRefs}
+              />
+            ))}
           </div>
         </div>
       )}
@@ -261,6 +452,8 @@ function TaskItem({
   isExpanded,
   level = 0,
   isSubtask = false,
+  taskRefs,
+  chevronRefs,
 }) {
   const tagInfo = getTagInfo(task.tag);
   const subtasks = task.subtasks || [];
@@ -284,6 +477,7 @@ function TaskItem({
   return (
     <>
       <div
+        ref={(el) => (taskRefs.current[task.id] = el)}
         className={`group relative border-t border-dashed cursor-pointer border-primary/50 dark:border-primary-700 select-none transition-colors duration-200 ${
           task.completed ? "" : "hover:bg-primary/5"
         } 
@@ -301,9 +495,11 @@ function TaskItem({
                 className="flex-shrink-0 p-1.5 -ml-2 hover:text-primary/80 dark:hover:text-primary/80 rounded-lg transition-all duration-200 active:scale-90"
               >
                 <div
-                  className={`transition-transform duration-200 ease-out ${
-                    isExpanded ? "rotate-90" : "rotate-0"
-                  }`}
+                  ref={(el) => (chevronRefs.current[task.id] = el)}
+                  className="transition-transform duration-200 ease-out"
+                  style={{
+                    transform: isExpanded ? "rotate(90deg)" : "rotate(0deg)",
+                  }}
                 >
                   <ChevronRight className="h-4 w-4" />
                 </div>
@@ -337,7 +533,7 @@ function TaskItem({
               </div>
 
               <span
-                className={`block font-extrabold text-lg transition-opacity duration-200 ${
+                className={`task-title block font-extrabold text-lg transition-opacity duration-200 ${
                   task.completed
                     ? "line-through text-gray-600 dark:text-gray-100 opacity-70"
                     : "text-gray-600 dark:text-gray-100 opacity-100"
@@ -382,7 +578,7 @@ function TaskItem({
             onClick={(e) => onToggleTask(task.id, e)}
           >
             <div
-              className={`flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center duration-200 mr-4 active:scale-90 transition-none ${
+              className={`checkmark flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center duration-200 mr-4 active:scale-90 transition-none ${
                 task.completed
                   ? "bg-primary border-primary"
                   : "border-primary/50 border-dotted"
@@ -397,7 +593,7 @@ function TaskItem({
       </div>
 
       {hasSubtasks && isExpanded && (
-        <div>
+        <div ref={(el) => (taskRefs.current[`${task.id}-subtasks`] = el)}>
           {sortedSubtasks.map((subtask, subIndex) => (
             <TaskItem
               key={subtask.id}
@@ -415,6 +611,8 @@ function TaskItem({
               isExpanded={false}
               level={level + 1}
               isSubtask={true}
+              taskRefs={taskRefs}
+              chevronRefs={chevronRefs}
             />
           ))}
         </div>

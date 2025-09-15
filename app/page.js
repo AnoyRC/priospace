@@ -17,6 +17,8 @@ import { SettingsModal } from "@/components/settings-modal";
 import { IntroScreen } from "@/components/intro-screen";
 import { WebRTCShareModal } from "@/components/webrtc-share-modal";
 import { Filesystem, Directory, Encoding } from "@capacitor/filesystem";
+import { SplashScreen } from "@capacitor/splash-screen";
+import { Capacitor } from "@capacitor/core";
 
 export default function Home() {
   // --- State definitions ---

@@ -14,6 +14,7 @@ import {
   Check,
   Share,
   Wifi,
+  Power, // Added for autostart
   Trash2,
   Edit2,
   Save,
@@ -24,6 +25,8 @@ import { Button } from "@/components/ui/button";
 import { open } from "@tauri-apps/plugin-shell";
 import { Input } from "@/components/ui/input";
 import { useState, useRef } from "react";
+import { useEffect } from "react"; // Added hooks
+import { enable, isEnabled, disable } from "@tauri-apps/plugin-autostart"; // Added autostart plugin functions
 
 export function SettingsModal({
   onClose,
@@ -135,6 +138,38 @@ export function SettingsModal({
       },
     },
   ];
+
+  // State to manage autostart status
+  const [autostartEnabled, setAutostartEnabled] = useState(false);
+
+  // useEffect to check autostart status when the modal opens
+  useEffect(() => {
+    const checkAutostart = async () => {
+      try {
+        const enabled = await isEnabled();
+        setAutostartEnabled(enabled);
+      } catch (error) {
+        console.error("Failed to check autostart status:", error);
+      }
+    };
+    checkAutostart();
+  }, []);
+
+  // Handler to toggle autostart
+  const handleToggleAutostart = async () => {
+    try {
+      if (autostartEnabled) {
+        await disable();
+        setAutostartEnabled(false);
+      } else {
+        await enable();
+        setAutostartEnabled(true);
+      }
+    } catch (error) {
+      console.error("Failed to update autostart setting:", error);
+      alert("Could not change autostart setting. Please try again.");
+    }
+  };
 
   // Animation variants
   const backdropVariants = {
@@ -528,6 +563,54 @@ export function SettingsModal({
                     </div>
                   ))
                 )}
+              </div>
+            </motion.div>
+
+            {/* Auto-start Toggle */}
+            <motion.div variants={itemVariants}>
+              <div
+                className={`flex items-center justify-between p-4 rounded-xl border-2  bg-gray-50 dark:bg-gray-800/80 transition-colors ${
+                  autostartEnabled
+                    ? "border-green-300 dark:border-green-600"
+                    : "border-gray-200 dark:border-gray-700"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <Power
+                    className={`h-5 w-5 transition-colors ${
+                      autostartEnabled
+                        ? "text-green-600 dark:text-green-400"
+                        : "text-primary"
+                    }`}
+                  />
+                  <div>
+                    <div className="font-extrabold text-gray-900 dark:text-gray-100">
+                      Auto-start on Login
+                    </div>
+                    <div className="text-sm text-gray-500 dark:text-gray-400 font-medium">
+                      {autostartEnabled
+                        ? "App will start automatically"
+                        : "App will not start automatically"}
+                    </div>
+                  </div>
+                </div>
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Button
+                    onClick={handleToggleAutostart}
+                    variant="outline"
+                    size="sm"
+                    className={`border-2 rounded-xl font-extrabold w-24 h-12 p-0 transition-colors ${
+                      autostartEnabled
+                        ? "bg-green-100 dark:bg-green-800/50 border-green-300 dark:border-green-600 text-green-700 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-800"
+                        : "border-gray-300 dark:border-gray-600 hover:border-primary/70 dark:hover:border-primary/80"
+                    }`}
+                  >
+                    {autostartEnabled ? "Disable" : "Enable"}
+                  </Button>
+                </motion.div>
               </div>
             </motion.div>
 

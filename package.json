@@ -12,6 +12,7 @@
   "dependencies": {
     "@radix-ui/react-select": "^2.2.5",
     "@radix-ui/react-slot": "^1.2.3",
+    "@tauri-apps/plugin-autostart": "^2.5.0",
     "@tauri-apps/plugin-dialog": "^2.3.1",
     "@tauri-apps/plugin-fs": "^2.4.1",
     "@tauri-apps/plugin-shell": "^2.3.0",

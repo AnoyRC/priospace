@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "priospace",
-  "version": "0.1.3",
+  "version": "1.0.2",
   "identifier": "com.anoyrc.priospace",
   "build": {
     "frontendDist": "../out",
@@ -20,7 +20,7 @@
       }
     ],
     "security": {
-      "csp": null
+      "csp": "default-src 'self'; connect-src 'self' https: wss:; font-src 'self' data:; img-src 'self' data: https:; style-src 'self' 'unsafe-inline';"
     }
   },
   "bundle": {
@@ -31,7 +31,8 @@
         "embedded.provisionprofile": "../internal/priospace.provisionprofile"
       },
       "entitlements": "Entitlements.plist",
-      "signingIdentity": "Apple Distribution: Anoy Roy Chowdhury (AU333QNGKA)"
+      "signingIdentity": "Apple Distribution: Anoy Roy Chowdhury (AU333QNGKA)",
+      "providerShortName": "AU333QNGKA"
     },
     "category": "Productivity",
     "icon": [

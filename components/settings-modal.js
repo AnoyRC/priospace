@@ -14,7 +14,8 @@ import {
   Check,
   Share,
   Wifi,
-  Power, // Added for autostart
+  Power,
+  Github, // Added for autostart
   Trash2,
   Edit2,
   Save,
@@ -231,8 +232,8 @@ export function SettingsModal({
     },
   };
 
-  const handleBuyMeCoffee = () => {
-    open("https://coff.ee/anoy");
+  const handleGithubClick = () => {
+    open("https://github.com/AnoyRC/priospace");
   };
 
   const handleTwitterClick = () => {
@@ -709,11 +710,11 @@ export function SettingsModal({
                 whileTap={{ scale: 0.99 }}
               >
                 <Button
-                  onClick={handleBuyMeCoffee}
+                  onClick={handleGithubClick}
                   className="w-full bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white font-extrabold py-4 rounded-xl shadow-lg border-0"
                 >
-                  <Heart className="h-5 w-5 mr-2 fill-current" />
-                  Buy Me a Coffee
+                  <Github className="h-5 w-5 mr-2 fill-current" />
+                  GitHub
                   <ExternalLink className="h-4 w-4 ml-2" />
                 </Button>
               </motion.div>

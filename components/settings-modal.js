@@ -8,7 +8,7 @@ import {
   Sun,
   Moon,
   Settings,
-  Heart,
+  Github,
   ExternalLink,
   Palette,
   Check,
@@ -143,8 +143,8 @@ export function SettingsModal({
   };
   // --- END OF ANIMATIONS ---
 
-  const handleBuyMeCoffee = () => {
-    window.open("https://coff.ee/anoy", "_blank");
+  const handleGithubClick = () => {
+    window.open("https://github.com/AnoyRC/priospace", "_blank");
   };
 
   const handleTwitterClick = () => {
@@ -342,11 +342,11 @@ export function SettingsModal({
             </div>
 
             <Button
-              onClick={handleBuyMeCoffee}
+              onClick={handleGithubClick}
               className="w-full bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white font-extrabold py-4 rounded-xl shadow-lg border-0"
             >
-              <Heart className="h-5 w-5 mr-2 fill-current" />
-              Buy Me a Coffee
+              <Github className="h-5 w-5 mr-2 fill-current" />
+              Github
               <ExternalLink className="h-4 w-4 ml-2" />
             </Button>
 

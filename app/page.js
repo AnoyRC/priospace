@@ -853,6 +853,16 @@ export default function Home() {
     return newTag.id;
   };
 
+  const updateTag = (id, name, color) => {
+    setCustomTags(customTags.map(tag =>
+      tag.id === id ? { ...tag, name, color } : tag
+    ));
+  };
+
+  const deleteTag = (id) => {
+    setCustomTags(customTags.filter(tag => tag.id !== id));
+  };
+
   const handleTaskClick = (task) => {
     setSelectedTask(task);
     setShowTaskOptions(true);
@@ -1207,6 +1217,10 @@ export default function Home() {
                 onExportData={exportData}
                 onImportData={importData}
                 onOpenWebRTCShare={() => setShowWebRTCShare(true)}
+                onAddCustomTag={addCustomTag}
+                onUpdateTag={updateTag}
+                onDeleteTag={deleteTag}
+                customTags={customTags}
               />
             )}
 

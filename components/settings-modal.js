@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   X,
@@ -14,8 +15,14 @@ import {
   Check,
   Share,
   Wifi,
+  Tag,
+  Edit,
+  Trash2,
+  Plus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { PRESET_COLORS } from "@/lib/consts";
 
 export function SettingsModal({
   onClose,
@@ -26,6 +33,10 @@ export function SettingsModal({
   theme,
   onThemeChange,
   onOpenWebRTCShare, // New prop for opening WebRTC share
+  customTags,
+  onUpdateTag,    // 编辑标签
+  onDeleteTag,    // 删除标签
+  onAddCustomTag, // 可复用
 }) {
   const themes = [
     {
@@ -184,6 +195,46 @@ export function SettingsModal({
     onOpenWebRTCShare(); // Open WebRTC share modal
   };
 
+  const [editingTagId, setEditingTagId] = useState(null);
+  const [editTagName, setEditTagName] = useState("");
+  const [editTagColor, setEditTagColor] = useState(PRESET_COLORS[0]);
+  const [showAddTag, setShowAddTag] = useState(false);
+  const [newTagName, setNewTagName] = useState("");
+  const [newTagColor, setNewTagColor] = useState(PRESET_COLORS[0]);
+  const [showTagManager, setShowTagManager] = useState(false);
+
+  const startEditTag = (tag) => {
+    setEditingTagId(tag.id);
+    setEditTagName(tag.name);
+    setEditTagColor(tag.color);
+  };
+  const saveEditTag = () => {
+    onUpdateTag(editingTagId, editTagName, editTagColor);
+    setEditingTagId(null);
+    setEditTagName("");
+    setEditTagColor(PRESET_COLORS[0]);
+  };
+  const cancelEditTag = () => {
+    setEditingTagId(null);
+    setEditTagName("");
+    setEditTagColor(PRESET_COLORS[0]);
+  };
+
+  const handleAddTag = () => {
+    if (newTagName.trim()) {
+      onAddCustomTag(newTagName.trim(), newTagColor);
+      setNewTagName("");
+      setNewTagColor(PRESET_COLORS[0]);
+      setShowAddTag(false);
+    }
+  };
+
+  const handleDeleteTag = (tagId) => {
+    if (window.confirm("Are you sure you want to delete this tag?")) {
+      onDeleteTag(tagId);
+    }
+  };
+
   const ThemePreview = ({ themeData, isSelected, onClick }) => (
     <motion.button
       onClick={onClick}
@@ -295,13 +346,134 @@ export function SettingsModal({
               <X className="h-5 w-5" />
             </Button>
           </motion.div>
-
           <motion.div
             variants={contentVariants}
             initial="hidden"
             animate="visible"
             className="space-y-4"
           >
+            {/* Manage Tags with collapsable*/}
+            <motion.div variants={itemVariants}>
+              <div className="p-4 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/80">
+                <button
+                  className="flex items-center gap-3 mb-2 w-full font-extrabold text-gray-900 dark:text-gray-100 focus:outline-none"
+                  onClick={() => setShowTagManager((v) => !v)}
+                >
+                  <Tag className="h-5 w-5 text-primary" />
+                  <span>Manage Tags</span>
+                  <span className="ml-auto">
+                    <svg
+                      className={`w-4 h-4 transition-transform ${showTagManager ? "rotate-90" : ""}`}
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                    </svg>
+                  </span>
+                </button>
+                <div className={`transition-all duration-200 overflow-hidden ${showTagManager ? "max-h-[600px] mt-2" : "max-h-0"}`}>
+                  <div className="space-y-2">
+                    {customTags.map((tag) =>
+                      editingTagId === tag.id ? (
+                        <div key={tag.id} className="flex items-center gap-2">
+                          <Input
+                            value={editTagName}
+                            onChange={(e) => setEditTagName(e.target.value)}
+                            className="w-32"
+                          />
+                          <div className="flex flex-wrap gap-2 mb-2">
+                            {PRESET_COLORS.map((color) => (
+                              <button
+                                key={color}
+                                type="button"
+                                onClick={() => setEditTagColor(color)}
+                                className={`w-7 h-7 rounded-full border-2 transition-all duration-200 flex items-center justify-center
+                                  ${editTagColor === color
+                                    ? "border-gray-900 dark:border-gray-100 ring-2 ring-primary/50"
+                                    : "border-gray-200 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-400"
+                                  }`}
+                                style={{ backgroundColor: color }}
+                              >
+                                {editTagColor === color && (
+                                  <Check className="h-4 w-4 text-white drop-shadow-sm" />
+                                )}
+                              </button>
+                            ))}
+                          </div>
+                          <Button size="sm" variant="outline" onClick={saveEditTag}>
+                            <Check />
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={cancelEditTag}>
+                            <X />
+                          </Button>
+                        </div>
+                      ) : (
+                        <div key={tag.id} className="flex items-center gap-2">
+                          <div
+                            className="w-4 h-4 rounded-full"
+                            style={{ backgroundColor: tag.color }}
+                          />
+                          <span className="font-bold">{tag.name}</span>
+                          <Button size="sm" variant="ghost" onClick={() => startEditTag(tag)}>
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button size="sm" variant="ghost" onClick={() => handleDeleteTag(tag.id)}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      )
+                    )}
+                  </div>
+                  {showAddTag ? (
+                    <div className="flex items-center gap-2 mt-3">
+                      <Input
+                        value={newTagName}
+                        onChange={(e) => setNewTagName(e.target.value)}
+                        placeholder="New tag name"
+                        className="w-32"
+                      />
+                      <div className="flex flex-wrap gap-2 mb-2">
+                        {PRESET_COLORS.map((color) => (
+                          <button
+                            key={color}
+                            type="button"
+                            onClick={() => setNewTagColor(color)}
+                            className={`w-7 h-7 rounded-full border-2 transition-all duration-200 flex items-center justify-center
+                              ${newTagColor === color
+                                ? "border-gray-900 dark:border-gray-100 ring-2 ring-primary/50"
+                                : "border-gray-200 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-400"
+                              }`}
+                            style={{ backgroundColor: color }}
+                          >
+                            {newTagColor === color && (
+                              <Check className="h-4 w-4 text-white drop-shadow-sm" />
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                      <Button size="sm" variant="outline" onClick={handleAddTag}>
+                        <Check/>
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => setShowAddTag(false)}>
+                        <X />
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="mt-3"
+                      onClick={() => setShowAddTag(true)}
+                    >
+                      <Plus className="h-4 w-4 mr-1" /> Add Tag
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+
             {/* Theme Selection */}
             <motion.div variants={itemVariants}>
               <div className="flex items-center justify-between p-4 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/80">

@@ -1,54 +1,29 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion, useSpring } from "framer-motion";
+import { AnimatePresence, motion, useSpring } from "framer-motion";
 import { Sun, Moon } from "lucide-react";
 
 function AnimatedWeekday({ dayIndex, fontSize, textColor }) {
   const weekdays = [
-    {
-      day: "Sun",
-      width: fontSize * 1.8,
-    },
-    {
-      day: "Mon",
-      width: fontSize * 2,
-    },
-    {
-      day: "Tue",
-      width: fontSize * 1.65,
-    },
-    {
-      day: "Wed",
-      width: fontSize * 2.2,
-    },
-    {
-      day: "Thu",
-      width: fontSize * 1.8,
-    },
-    {
-      day: "Fri",
-      width: fontSize * 1.2,
-    },
-    {
-      day: "Sat",
-      width: fontSize * 1.6,
-    },
+    { day: "Sun", width: fontSize * 1.8 },
+    { day: "Mon", width: fontSize * 2 },
+    { day: "Tue", width: fontSize * 1.65 },
+    { day: "Wed", width: fontSize * 2.2 },
+    { day: "Thu", width: fontSize * 1.8 },
+    { day: "Fri", width: fontSize * 1.2 },
+    { day: "Sat", width: fontSize * 1.6 },
   ];
+
   const height = fontSize * 1.2;
 
-  const animatedIndex = useSpring(dayIndex, { stiffness: 300, damping: 30 });
-
-  useEffect(() => {
-    animatedIndex.set(dayIndex);
-  }, [animatedIndex, dayIndex]);
-
   return (
-    <div
+    <motion.div
       className="relative overflow-hidden inline-block"
+      animate={{ width: weekdays[dayIndex].width }}
+      transition={{ type: "spring", stiffness: 300, damping: 30 }}
       style={{
         height: height,
-        width: weekdays[dayIndex].width,
         fontSize: fontSize,
         color: textColor,
         fontWeight: "800",
@@ -58,21 +33,17 @@ function AnimatedWeekday({ dayIndex, fontSize, textColor }) {
         <motion.div
           key={day.day}
           className="absolute flex items-center justify-start font-extrabold"
-          style={{
-            y: useSpring((index - dayIndex) * height, {
-              stiffness: 300,
-              damping: 30,
-            }),
-          }}
+          initial={false}
           animate={{
             y: (index - dayIndex) * height,
+            opacity: index === dayIndex ? 1 : 0,
           }}
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
         >
           {day.day}
         </motion.div>
       ))}
-    </div>
+    </motion.div>
   );
 }
 
@@ -141,21 +112,37 @@ export function DayNightCycle({ selectedDate }) {
     return date.toDateString() === today.toDateString();
   };
 
-  // Get the day index (0 for Sunday, 1 for Monday, etc.) from the date
   const dayIndex = selectedDate.getDay();
 
   return (
     <div className="flex items-center gap-3">
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-3">
         <div className="text-4xl font-extrabold flex items-center">
           <AnimatedWeekday dayIndex={dayIndex} fontSize={32} />
         </div>
-        {isToday(selectedDate) &&
-          (isDay ? (
-            <Sun className="h-7 w-7 text-yellow-500" />
-          ) : (
-            <Moon className="h-7 w-7 text-blue-500" />
-          ))}
+
+        <AnimatePresence mode="wait">
+          {isToday(selectedDate) && (
+            <motion.div
+              key={isDay ? "sun" : "moon"}
+              initial={{ y: 20, opacity: 0, rotate: -45 }}
+              animate={{ y: 0, opacity: 1, rotate: 0 }}
+              exit={{ y: -20, opacity: 0, rotate: 45 }}
+              transition={{
+                type: "spring",
+                stiffness: 300,
+                damping: 20,
+              }}
+              className="flex items-center justify-center"
+            >
+              {isDay ? (
+                <Sun className="h-8 w-8 text-yellow-500 fill-yellow-500/20" />
+              ) : (
+                <Moon className="h-8 w-8 text-blue-500 fill-blue-500/20" />
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );

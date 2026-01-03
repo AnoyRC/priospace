@@ -159,7 +159,7 @@ export function TaskList({
     const chevronElement = chevronRefs.current[taskId];
     const isCurrentlyExpanded = expandedTasks[taskId];
 
-    // Animate chevron rotation
+    // Animate chevron rotation only
     if (chevronElement) {
       gsap.to(chevronElement, {
         rotation: isCurrentlyExpanded ? 0 : 90,
@@ -168,40 +168,11 @@ export function TaskList({
       });
     }
 
-    setExpandedTasks((prev) => {
-      const newExpanded = {
-        ...prev,
-        [taskId]: !prev[taskId],
-      };
-
-      // Animate subtasks
-      setTimeout(() => {
-        const subtaskElements = taskRefs.current[`${taskId}-subtasks`];
-        if (subtaskElements) {
-          if (!isCurrentlyExpanded) {
-            // Expanding
-            gsap.fromTo(
-              subtaskElements.children,
-              {
-                opacity: 0,
-                x: -20,
-                height: 0,
-              },
-              {
-                opacity: 1,
-                x: 0,
-                height: "auto",
-                duration: 0.4,
-                stagger: 0.05,
-                ease: "power2.out",
-              }
-            );
-          }
-        }
-      }, 50);
-
-      return newExpanded;
-    });
+    // Standard state update without GSAP content animation
+    setExpandedTasks((prev) => ({
+      ...prev,
+      [taskId]: !prev[taskId],
+    }));
   };
 
   const toggleSection = (section) => {

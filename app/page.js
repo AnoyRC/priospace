@@ -34,24 +34,17 @@ export default function Home() {
   const [parentTaskForSubtask, setParentTaskForSubtask] = useState(null);
   const [mounted, setMounted] = useState(false);
 
-  // --- REVERTED PERSISTENCE LOGIC (USING localStorage) ---
-
-  // 1. Load all data from localStorage on initial app mount
+  // --- PERSISTENCE LOGIC ---
   useEffect(() => {
     const savedDarkMode = localStorage.getItem("darkMode");
-    if (savedDarkMode) {
-      setDarkMode(JSON.parse(savedDarkMode));
-    }
+    if (savedDarkMode) setDarkMode(JSON.parse(savedDarkMode));
 
     const savedTheme = localStorage.getItem("theme");
-    if (savedTheme) {
-      setTheme(savedTheme);
-    }
+    if (savedTheme) setTheme(savedTheme);
 
     const savedDailyTasks = localStorage.getItem("dailyTasks");
     if (savedDailyTasks) {
       const parsed = JSON.parse(savedDailyTasks);
-      // Convert date strings back to Date objects and ensure all fields exist
       const converted = {};
       Object.keys(parsed).forEach((dateKey) => {
         converted[dateKey] = parsed[dateKey].map((task) => {
@@ -79,20 +72,14 @@ export default function Home() {
     }
 
     const savedCustomTags = localStorage.getItem("customTags");
-    if (savedCustomTags) {
-      setCustomTags(JSON.parse(savedCustomTags));
-    }
+    if (savedCustomTags) setCustomTags(JSON.parse(savedCustomTags));
 
     const savedHabits = localStorage.getItem("habits");
-    if (savedHabits) {
-      setHabits(JSON.parse(savedHabits));
-    }
+    if (savedHabits) setHabits(JSON.parse(savedHabits));
 
-    // Set mounted to true only after all initial data is loaded/set
     setMounted(true);
-  }, []); // Empty dependency array ensures this runs only once on mount
+  }, []);
 
-  // 2. Save data to localStorage whenever a piece of state changes
   useEffect(() => {
     if (mounted) localStorage.setItem("darkMode", JSON.stringify(darkMode));
   }, [darkMode, mounted]);
@@ -112,10 +99,9 @@ export default function Home() {
   useEffect(() => {
     if (mounted) localStorage.setItem("habits", JSON.stringify(habits));
   }, [habits, mounted]);
+  // --- END PERSISTENCE LOGIC ---
 
-  // --- END OF REVERTED PERSISTENCE LOGIC ---
-
-  // Apply theme classes to document
+  // Apply theme classes
   useEffect(() => {
     if (!mounted) return;
     const root = document.documentElement;
@@ -170,8 +156,6 @@ export default function Home() {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [activeModal, showIntroScreen]);
 
-  // --- ALL COMPONENT LOGIC FUNCTIONS BELOW ARE UNCHANGED ---
-
   const getDateString = (date) => {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -196,7 +180,7 @@ export default function Home() {
       isHabit: true,
       habitId: habit.id,
       tag: habit.tag,
-      subtasks: [], // Habits don't have subtasks
+      subtasks: [],
     }));
   };
 
@@ -211,7 +195,7 @@ export default function Home() {
         updatedSettings: [],
       };
 
-      const tagMapping = new Map(); // oldTagId -> newTagId
+      const tagMapping = new Map();
 
       if (data.customTags) {
         setCustomTags((prevTags) => {
@@ -606,27 +590,38 @@ export default function Home() {
   };
 
   const updateTask = (taskId, updates) => {
-    const dateString = getDateString(selectedDate);
-    const currentTasks = getCurrentDayTasks();
-    if (taskId.startsWith("habit-")) {
-      const habitId = taskId.split("-")[1];
-      const habit = habits.find((h) => h.id === habitId);
-      if (habit && updates.title) {
-        const updatedHabits = habits.map((h) =>
-          h.id === habitId ? { ...h, name: updates.title } : h
+    setDailyTasks((prev) => {
+      const newDailyTasks = { ...prev };
+      let taskToMove = null;
+      let oldDateKey = null;
+
+      Object.keys(newDailyTasks).forEach((dateKey) => {
+        const taskIndex = newDailyTasks[dateKey].findIndex(
+          (t) => t.id === taskId
         );
-        setHabits(updatedHabits);
+        if (taskIndex !== -1) {
+          oldDateKey = dateKey;
+          taskToMove = { ...newDailyTasks[dateKey][taskIndex], ...updates };
+
+          newDailyTasks[dateKey].splice(taskIndex, 1);
+
+          if (newDailyTasks[dateKey].length === 0) {
+            delete newDailyTasks[dateKey];
+          }
+        }
+      });
+
+      if (taskToMove) {
+        const newDateKey = getDateString(new Date(taskToMove.createdAt));
+
+        newDailyTasks[newDateKey] = [
+          ...(newDailyTasks[newDateKey] || []),
+          taskToMove,
+        ];
       }
-      if (habit && updates.tag !== undefined) {
-        const updatedHabits = habits.map((h) =>
-          h.id === habitId ? { ...h, tag: updates.tag } : h
-        );
-        setHabits(updatedHabits);
-      }
-    } else {
-      const updatedTasks = updateTaskInList(taskId, updates, currentTasks);
-      setDailyTasks({ ...dailyTasks, [dateString]: updatedTasks });
-    }
+
+      return newDailyTasks;
+    });
   };
 
   const deleteTask = (id) => {
@@ -724,6 +719,48 @@ export default function Home() {
     return newTag.id;
   };
 
+  const updateCustomTag = (tagId, updates) => {
+    setCustomTags((prev) =>
+      prev.map((tag) => (tag.id === tagId ? { ...tag, ...updates } : tag))
+    );
+  };
+
+  const deleteCustomTag = (tagId) => {
+    setCustomTags((prev) => prev.filter((tag) => tag.id !== tagId));
+
+    const updatedDailyTasks = { ...dailyTasks };
+    Object.keys(updatedDailyTasks).forEach((dateKey) => {
+      updatedDailyTasks[dateKey] = updatedDailyTasks[dateKey].map((task) => {
+        const updatedTask = { ...task };
+        if (updatedTask.tag === tagId) updatedTask.tag = undefined;
+
+        if (updatedTask.subtasks) {
+          updatedTask.subtasks = updatedTask.subtasks.map((st) =>
+            st.tag === tagId ? { ...st, tag: undefined } : st
+          );
+        }
+        return updatedTask;
+      });
+    });
+    setDailyTasks(updatedDailyTasks);
+
+    setHabits((prev) =>
+      prev.map((habit) =>
+        habit.tag === tagId ? { ...habit, tag: undefined } : habit
+      )
+    );
+  };
+
+  const resetApp = () => {
+    localStorage.clear();
+    setDailyTasks({});
+    setCustomTags([]);
+    setHabits([]);
+    setDarkMode(false);
+    setTheme("default");
+    window.location.reload();
+  };
+
   const handleTaskClick = (task) => {
     setSelectedTask(task);
     setActiveModal("taskOptions");
@@ -745,15 +782,13 @@ export default function Home() {
         new Date().toISOString().split("T")[0]
       }.json`;
 
-      // Use the Filesystem plugin to write the file
       await Filesystem.writeFile({
         path: fileName,
         data: dataStr,
-        directory: Directory.Documents, // Saves to the user's Documents folder
+        directory: Directory.Documents,
         encoding: Encoding.UTF8,
       });
 
-      // Let the user know it was successful
       alert(
         `Backup saved successfully to your Documents folder as:\n${fileName}`
       );
@@ -829,10 +864,8 @@ export default function Home() {
   const flatTaskList = createFlatTaskList(allTasks);
 
   if (!mounted) {
-    return null; // Or a loading skeleton
+    return null;
   }
-
-  // --- JSX (Unchanged from your newer version) ---
 
   return (
     <>
@@ -866,7 +899,6 @@ export default function Home() {
                 <Settings className="h-3 w-3" />
               </button>
 
-              {/* Header Section */}
               <motion.div
                 whileTap={{ scale: 0.98 }}
                 onClick={() => setSelectedDate(new Date())}
@@ -962,7 +994,11 @@ export default function Home() {
                   onThemeChange={setTheme}
                   onExportData={exportData}
                   onImportData={importData}
+                  customTags={customTags}
+                  onUpdateCustomTag={updateCustomTag}
+                  onDeleteCustomTag={deleteCustomTag}
                   onOpenWebRTCShare={() => setActiveModal("webRTCShare")}
+                  onResetApp={resetApp}
                 />
               )}
 
@@ -1008,7 +1044,11 @@ export default function Home() {
                   task={selectedTask}
                   customTags={customTags}
                   onClose={() => {
-                    setActiveModal(null);
+                    // FIX: Only clear activeModal if it is still "taskOptions"
+                    // preventing overwrite if onAddSubtask has already switched mode.
+                    setActiveModal((prev) =>
+                      prev === "taskOptions" ? null : prev
+                    );
                     setSelectedTask(null);
                   }}
                   onUpdateTask={updateTask}
@@ -1181,7 +1221,11 @@ export default function Home() {
                   onThemeChange={setTheme}
                   onExportData={exportData}
                   onImportData={importData}
+                  customTags={customTags}
+                  onUpdateCustomTag={updateCustomTag}
+                  onDeleteCustomTag={deleteCustomTag}
                   onOpenWebRTCShare={() => setActiveModal("webRTCShare")}
+                  onResetApp={resetApp}
                 />
               )}
 
@@ -1227,7 +1271,10 @@ export default function Home() {
                   task={selectedTask}
                   customTags={customTags}
                   onClose={() => {
-                    setActiveModal(null);
+                    // FIX: Same fix applied to desktop layout
+                    setActiveModal((prev) =>
+                      prev === "taskOptions" ? null : prev
+                    );
                     setSelectedTask(null);
                   }}
                   onUpdateTask={updateTask}

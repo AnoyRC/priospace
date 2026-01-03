@@ -1,3 +1,9 @@
+## Mac Permission Command
+
+```bash
+sudo chown -R $(whoami) .
+```
+
 ## Mac Build Command
 
 ```bash

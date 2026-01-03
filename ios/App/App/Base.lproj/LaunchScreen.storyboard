@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="23727" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" launchScreen="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="01J-lp-oVM">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="24506" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" launchScreen="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="01J-lp-oVM">
     <device id="retina6_1" orientation="portrait" appearance="light"/>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="23721"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="24504"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
@@ -11,7 +12,7 @@
         <scene sceneID="EHf-IW-A2E">
             <objects>
                 <viewController modalTransitionStyle="crossDissolve" id="01J-lp-oVM" sceneMemberID="viewController">
-                    <containerView key="view" opaque="NO" contentMode="scaleToFill" id="Z0P-SO-N47">
+                    <containerView key="view" opaque="NO" contentMode="center" id="Z0P-SO-N47">
                         <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
                         <connections>
@@ -27,21 +28,26 @@
         <scene sceneID="AHG-S1-efj">
             <objects>
                 <viewController id="gd3-qT-z11" sceneMemberID="viewController">
-                    <view key="view" contentMode="scaleToFill" id="Dbn-sr-vNk">
+                    <view key="view" contentMode="center" id="Dbn-sr-vNk">
                         <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="100x100" translatesAutoresizingMaskIntoConstraints="NO" id="ATv-2B-Wvi">
-                                <rect key="frame" x="161" y="407" width="92" height="82"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                            </imageView>
-                            <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" fixedFrame="YES" animating="YES" style="medium" translatesAutoresizingMaskIntoConstraints="NO" id="lTa-mC-RaH">
-                                <rect key="frame" x="197" y="797" width="20" height="20"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                            <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" animating="YES" style="medium" translatesAutoresizingMaskIntoConstraints="NO" id="lTa-mC-RaH">
+                                <rect key="frame" x="197" y="638" width="20" height="20"/>
                                 <color key="color" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                             </activityIndicatorView>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="100x100" translatesAutoresizingMaskIntoConstraints="NO" id="ATv-2B-Wvi">
+                                <rect key="frame" x="157" y="398" width="100" height="100"/>
+                            </imageView>
                         </subviews>
+                        <viewLayoutGuide key="safeArea" id="zcD-M7-Gvm"/>
                         <color key="backgroundColor" red="0.94450163840000001" green="0.94157367940000003" blue="0.90214401479999995" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                        <constraints>
+                            <constraint firstItem="lTa-mC-RaH" firstAttribute="centerX" secondItem="Dbn-sr-vNk" secondAttribute="centerX" id="QaO-Rb-dFG"/>
+                            <constraint firstItem="lTa-mC-RaH" firstAttribute="centerY" secondItem="Dbn-sr-vNk" secondAttribute="centerY" constant="200" id="V2o-dW-Whh"/>
+                            <constraint firstItem="ATv-2B-Wvi" firstAttribute="centerY" secondItem="Dbn-sr-vNk" secondAttribute="centerY" id="gFm-ql-hHu"/>
+                            <constraint firstItem="ATv-2B-Wvi" firstAttribute="centerX" secondItem="Dbn-sr-vNk" secondAttribute="centerX" id="mtg-Uk-wkn"/>
+                        </constraints>
                     </view>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="MrW-c0-CT7" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
